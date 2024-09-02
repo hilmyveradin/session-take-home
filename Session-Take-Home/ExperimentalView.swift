@@ -191,8 +191,8 @@ struct ExperimentalView: View {
                                             Text("Support").foregroundColor(.blue)
                                             Text("Sleep").foregroundColor(.purple)
                                         }
-                                        .frame(maxHeight: 500)
-                                        .background(Color.white)
+                                        .background(.background)
+                                        .listStyle(.plain)
                     Color.black.opacity(0.001)
                         .onTapGesture {
                             isShowingSuggestions = false
@@ -206,7 +206,7 @@ struct ExperimentalView: View {
             if isShowingSuggestions {
                 VStack {
                     Color.black.opacity(0.001)
-                        .frame(height: 120)
+                        .frame(height: 110)
                         .onTapGesture {
                             isShowingCategories = false
                             isShowingSuggestions = false
@@ -220,7 +220,8 @@ struct ExperimentalView: View {
                                             Text("Design")
                                             Text("Decorondum")
                                         }
-                                        .background(Color.blue)
+                                        .background(.background)
+                                        .listStyle(.plain)
                     
                     Color.black.opacity(0.001)
                         .onTapGesture {
