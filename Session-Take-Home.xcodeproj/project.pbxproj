@@ -8,7 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		017AD8C42C8674BB001B1577 /* Session_Take_HomeApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 017AD8C32C8674BB001B1577 /* Session_Take_HomeApp.swift */; };
-		017AD8C62C8674BB001B1577 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 017AD8C52C8674BB001B1577 /* ContentView.swift */; };
+		017AD8C62C8674BB001B1577 /* TodoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 017AD8C52C8674BB001B1577 /* TodoView.swift */; };
 		017AD8C82C8674BC001B1577 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 017AD8C72C8674BC001B1577 /* Assets.xcassets */; };
 		017AD8CB2C8674BC001B1577 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 017AD8CA2C8674BC001B1577 /* Preview Assets.xcassets */; };
 		017AD8D22C867794001B1577 /* MockData.json in Resources */ = {isa = PBXBuildFile; fileRef = 017AD8D12C867794001B1577 /* MockData.json */; };
@@ -19,7 +19,7 @@
 /* Begin PBXFileReference section */
 		017AD8C02C8674BB001B1577 /* Session-Take-Home.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Session-Take-Home.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		017AD8C32C8674BB001B1577 /* Session_Take_HomeApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Session_Take_HomeApp.swift; sourceTree = "<group>"; };
-		017AD8C52C8674BB001B1577 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		017AD8C52C8674BB001B1577 /* TodoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoView.swift; sourceTree = "<group>"; };
 		017AD8C72C8674BC001B1577 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		017AD8CA2C8674BC001B1577 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		017AD8D12C867794001B1577 /* MockData.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = MockData.json; sourceTree = "<group>"; };
@@ -58,7 +58,7 @@
 			isa = PBXGroup;
 			children = (
 				017AD8C32C8674BB001B1577 /* Session_Take_HomeApp.swift */,
-				017AD8C52C8674BB001B1577 /* ContentView.swift */,
+				017AD8C52C8674BB001B1577 /* TodoView.swift */,
 				017AD8D42C867976001B1577 /* CategoryData.swift */,
 				017AD8D62C867BEF001B1577 /* ExperimentalView.swift */,
 				017AD8D12C867794001B1577 /* MockData.json */,
@@ -147,7 +147,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				017AD8C62C8674BB001B1577 /* ContentView.swift in Sources */,
+				017AD8C62C8674BB001B1577 /* TodoView.swift in Sources */,
 				017AD8D52C867976001B1577 /* CategoryData.swift in Sources */,
 				017AD8D72C867BEF001B1577 /* ExperimentalView.swift in Sources */,
 				017AD8C42C8674BB001B1577 /* Session_Take_HomeApp.swift in Sources */,
