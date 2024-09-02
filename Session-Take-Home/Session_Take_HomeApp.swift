@@ -11,7 +11,7 @@ import SwiftUI
 struct Session_Take_HomeApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            ExperimentalView()
         }
     }
 }
