@@ -149,6 +149,13 @@ struct TodoView: View {
                     .foregroundColor(Color(hex: selectedSession?.color ?? ""))
             }
         })
+        .onHover(perform: { hovering in
+            if hovering && viewState == .todo {
+                keyEventHandler.selectedIndex = index
+            } else {
+                keyEventHandler.selectedIndex = -99
+            }
+        })
         .id(index)
         .background((index == keyEventHandler.selectedIndex && viewState == .todo) ? Color.blue.opacity(0.2) : Color.clear)
     }
@@ -192,6 +199,13 @@ struct TodoView: View {
                     .foregroundStyle(Color(hex: colorItems[index]))
                 Text(item)
                 Spacer()
+            }
+        })
+        .onHover(perform: { hovering in
+            if hovering && viewState == .category {
+                keyEventHandler.selectedIndex = index
+            } else {
+                keyEventHandler.selectedIndex = -99
             }
         })
         .id(index)
@@ -252,6 +266,13 @@ struct TodoView: View {
             HStack {
                 Text(item)
                 Spacer()
+            }
+        })
+        .onHover(perform: { hovering in
+            if hovering && viewState == .focus{
+                keyEventHandler.selectedIndex = index
+            } else {
+                keyEventHandler.selectedIndex = -99
             }
         })
         .id(index)
