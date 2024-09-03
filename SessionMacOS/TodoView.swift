@@ -44,25 +44,20 @@ struct TodoView: View {
     @State private var focusText = ""
     @FocusState private var searchFocus: Bool
     
-    @State private var selectedSuggestion: String?
     @State private var selectedSession: Session?
-    
     @State private var mockSessionData: [Session] = []
+    
+    @State private var todoItems: [String] = []
+    @State private var categoryItems: [String] = []
+    @State private var focusItems: [String] = []
+    
+    @State private var filteredCategoryItems: [String] = []
+    @State private var filteredFocusItems: [String] = []
+    
     @State private var viewState: TodoViewState = .todo
     @State private var scrollTarget: Int?
     
     @StateObject private var keyEventHandler = KeyEventHandler()
-    
-    var filteredFocusItems: [String] {
-        guard let category = selectedSession else { return [] }
-        
-        if focusText == "" {
-            return category.focus
-        } else {
-            return category.focus.filter { $0.lowercased().contains(focusText.lowercased()) }
-        }
-        
-    }
     
     var body: some View {
 
@@ -91,34 +86,15 @@ struct TodoView: View {
                         }
                     }
                 
-//                // Base Todo View
+                // Base Todo View
                 ScrollViewReader { proxy in
                     List {
-                        ForEach(Array(getRelevantItems().enumerated()), id: \.element) { index, item in
-                            HoverableButton(isPriority: viewState == .todo, action: {
-                                selectItem(item)
-                            }, content: {
-                                HStack {
-                                    Image(systemName: "square")
-                                    Text(item)
-                                    Spacer()
-                                    if viewState == .todo {
-                                        Text(selectedSession?.name ?? "")
-                                            .font(.caption)
-                                            .foregroundColor(.green)
-                                    }
-                                }
-                            })
-                            .id(index)
-                            .background((index == keyEventHandler.selectedIndex && viewState == .todo) ? Color.blue.opacity(0.2) : Color.clear)
+                        ForEach(Array(todoItems.enumerated()), id: \.element) { index, item in
+                            todoItemView(item: item, index: index)
                         }
                     }
                     .onChange(of: scrollTarget) { target in
-                        if let target = target {
-                            withAnimation {
-                                proxy.scrollTo(target, anchor: .center)
-                            }
-                        }
+                        scrollToTarget(proxy: proxy, target: target)
                     }
                 }
 
@@ -128,96 +104,9 @@ struct TodoView: View {
             case .todo:
                 EmptyView()
             case .category:
-                VStack {
-                    Color.black.opacity(0.1)
-                        .frame(height: 50)
-                        .onTapGesture {
-                            viewState = .todo
-                        }
-                    
-                    // Category List View
-                    ScrollViewReader { proxy in
-                        List {
-                            ForEach(Array(getRelevantItems().enumerated()), id: \.element) { index, item in
-
-                                HoverableButton(isPriority: viewState == .category, action: {
-                                    selectItem(item)
-                                }, content: {
-                                    HStack {
-                                        Text(item)
-                                        Spacer()
-                                    }
-                                    
-                                })
-                                .id(index)
-                                .background((index == keyEventHandler.selectedIndex && viewState == .category) ? Color.blue.opacity(0.2) : Color.clear)
-                                
-                            }
-                        }
-                        .frame(maxHeight: 200)
-                        .listStyle(.plain)
-                        .onChange(of: scrollTarget) { target in
-                            if let target = target {
-                                withAnimation {
-                                    proxy.scrollTo(target, anchor: .center)
-                                }
-                            }
-                        }
-                    }
-
-                    
-                    Color.black.opacity(0.1)
-                        .onTapGesture {
-                            viewState = .todo
-                        }
-
-                }
-                .zIndex(2)
+                categoryListView()
             case .focus:
-                VStack {
-                    Color.black.opacity(0.1)
-                        .frame(height: 110)
-                        .onTapGesture {
-                            viewState = .todo
-                            searchFocus = false
-                        }
-                    
-                    // Focus view list
-                    ScrollViewReader { proxy in
-                        List {
-                            ForEach(Array(getRelevantItems().enumerated()), id: \.element) { index, item in
-                                HoverableButton(isPriority: viewState == .focus, action: {
-                                    selectItem(item)
-                                }, content: {
-                                    HStack {
-                                        Text(item)
-                                        Spacer()
-                                    }
-                                    
-                                })
-                                .id(index)
-                                .background((index == keyEventHandler.selectedIndex && viewState == .focus) ? Color.blue.opacity(0.2) : Color.clear)
-                            }
-                        }
-                        .frame(maxHeight: 200)
-                        .listStyle(.plain)
-                        .onChange(of: scrollTarget) { target in
-                            if let target = target {
-                                withAnimation {
-                                    proxy.scrollTo(target, anchor: .center)
-                                }
-                            }
-                        }
-                    }
-
-                    
-                    Color.black.opacity(0.001)
-                        .onTapGesture {
-                            viewState = .todo
-                            searchFocus = false
-                        }
-                }
-                .zIndex(2)
+                focusListView()
             }
         }
         .onAppear {
@@ -239,6 +128,122 @@ struct TodoView: View {
         }
     }
     
+    
+    private func todoItemView(item: String, index: Int) -> some View {
+        HoverableButton(isPriority: viewState == .todo, action: {
+            selectItem(item)
+        }, content: {
+            HStack {
+                Image(systemName: "square")
+                Text(item)
+                Spacer()
+                Text(selectedSession?.name ?? "")
+                    .font(.caption)
+                    .foregroundColor(.green)
+            }
+        })
+        .id(index)
+        .background((index == keyEventHandler.selectedIndex && viewState == .todo) ? Color.blue.opacity(0.2) : Color.clear)
+    }
+
+    private func categoryListView() -> some View {
+        VStack {
+            Color.black.opacity(0.1)
+                .frame(height: 50)
+                .onTapGesture {
+                    viewState = .todo
+                }
+            
+            ScrollViewReader { proxy in
+                List {
+                    ForEach(Array(filteredCategoryItems.enumerated()), id: \.element) { index, item in
+                        categoryItemView(item: item, index: index)
+                    }
+                }
+                .frame(maxHeight: 200)
+                .listStyle(.plain)
+                .onChange(of: scrollTarget) { target in
+                    scrollToTarget(proxy: proxy, target: target)
+                }
+            }
+            
+            Color.black.opacity(0.1)
+                .onTapGesture {
+                    viewState = .todo
+                }
+        }
+        .zIndex(2)
+    }
+
+    private func categoryItemView(item: String, index: Int) -> some View {
+        HoverableButton(isPriority: viewState == .category, action: {
+            selectItem(item)
+        }, content: {
+            HStack {
+                Text(item)
+                Spacer()
+            }
+        })
+        .id(index)
+        .background((index == keyEventHandler.selectedIndex && viewState == .category) ? Color.blue.opacity(0.2) : Color.clear)
+    }
+
+    private func focusListView() -> some View {
+        VStack {
+            Color.black.opacity(0.1)
+                .frame(height: 110)
+                .onTapGesture {
+                    viewState = .todo
+                    searchFocus = false
+                }
+            
+            ScrollViewReader { proxy in
+                List {
+                    ForEach(Array(filteredFocusItems.enumerated()), id: \.element) { index, item in
+                        focusItemView(item: item, index: index)
+                    }
+                }
+                .frame(maxHeight: 200)
+                .listStyle(.plain)
+                .onChange(of: scrollTarget) { target in
+                    scrollToTarget(proxy: proxy, target: target)
+                }
+            }
+            
+            Color.black.opacity(0.001)
+                .onTapGesture {
+                    viewState = .todo
+                    searchFocus = false
+                }
+        }
+        .zIndex(2)
+    }
+
+    private func focusItemView(item: String, index: Int) -> some View {
+        HoverableButton(isPriority: viewState == .focus, action: {
+            selectItem(item)
+        }, content: {
+            HStack {
+                Text(item)
+                Spacer()
+            }
+        })
+        .id(index)
+        .background((index == keyEventHandler.selectedIndex && viewState == .focus) ? Color.blue.opacity(0.2) : Color.clear)
+    }
+
+    private func scrollToTarget(proxy: ScrollViewProxy, target: Int?) {
+        if let target = target {
+            withAnimation {
+                proxy.scrollTo(target, anchor: .center)
+            }
+        }
+    }
+    
+    private func updateText() {
+        
+    }
+    
     private func updateKeyEventHandlerItems() {
         keyEventHandler.updateItems(getRelevantItems())
     }
@@ -246,9 +251,9 @@ struct TodoView: View {
     private func getRelevantItems() -> [String] {
         switch viewState {
         case .todo:
-            return selectedSession?.list ?? []
+            return todoItems
         case .category:
-            return mockSessionData.map { $0.name }
+            return filteredCategoryItems
         case .focus:
             return filteredFocusItems
         }
@@ -262,6 +267,7 @@ struct TodoView: View {
             if let session = mockSessionData.first(where: { $0.name == item }) {
                 selectedSession = session
                 viewState = .todo
+                focusText = ""
                 print("category button clicked")
             }
         case .focus:
@@ -281,8 +287,17 @@ struct TodoView: View {
         do {
             let data = try Data(contentsOf: url)
             let decoder = JSONDecoder()
-            mockSessionData = try decoder.decode([Session].self, from: data)
-            selectedSession = mockSessionData[0]
+            let sessionJsonData = try decoder.decode([Session].self, from: data)
+            
+            mockSessionData = sessionJsonData
+            selectedSession = sessionJsonData[0]
+            
+            todoItems = selectedSession?.list ?? []
+            categoryItems = mockSessionData.map { $0.name }
+            focusItems = selectedSession?.focus ?? []
+            
+            filteredCategoryItems = categoryItems
+            filteredFocusItems = focusItems
         } catch {
             print("Error decoding MockData.json: \(error)")
         }
