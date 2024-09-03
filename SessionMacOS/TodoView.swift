@@ -104,7 +104,7 @@ struct TodoView: View {
                                 }
                             }
                         }
-                        .background(index == keyEventHandler.selectedIndex ? Color.blue.opacity(0.2) : Color.clear)
+                        .background((index == keyEventHandler.selectedIndex && viewState == .todo) ? Color.blue.opacity(0.2) : Color.clear)
                     }
                 }
             }
@@ -133,7 +133,7 @@ struct TodoView: View {
                                 }
                                 
                             })
-                            .background(index == keyEventHandler.selectedIndex ? Color.blue.opacity(0.2) : Color.clear)
+                            .background((index == keyEventHandler.selectedIndex && viewState == .category) ? Color.blue.opacity(0.2) : Color.clear)
                             
                         }
                     }
@@ -168,7 +168,7 @@ struct TodoView: View {
                                 }
                                 
                             })
-                            .background(index == keyEventHandler.selectedIndex ? Color.blue.opacity(0.2) : Color.clear)
+                            .background((index == keyEventHandler.selectedIndex && viewState == .focus) ? Color.blue.opacity(0.2) : Color.clear)
                         }
                     }
                     .frame(maxHeight: 200)
