@@ -64,7 +64,13 @@ struct TodoView: View {
             .frame(height: 50)
             .focused($searchFocus)
             .onChange(of: viewModel.focusText) { viewModel.handleTextFieldChange($0) }
-            .onChange(of: searchFocus) { if $0 { viewModel.viewState = .focus } }
+            .onChange(of: searchFocus) { if $0 { viewModel.viewState = .focus }}
+//            .onSubmit {
+//                viewModel.viewState = .focus
+//                viewModel.selectItem(viewModel.focusText)
+//                searchFocus = false
+//                viewModel.viewState = .todo
+//            }
     }
     
     private var todoList: some View {

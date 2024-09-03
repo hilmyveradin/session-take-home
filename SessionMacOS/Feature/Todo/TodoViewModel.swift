@@ -21,12 +21,18 @@ class TodoViewModel: ObservableObject {
     @Published var scrollTarget: Int?
     @Published var isTagIntention = false
     
-    private var mockSessionData: [Session] = []
+    private var sessions: [Session] = []
     let keyEventHandler = KeyEventHandler()
     
     init() {
-        loadMockData()
+        loadData()
         setupKeyEventHandler()
+    }
+    
+    private func loadData() {
+        sessions = SessionDataManager.shared.loadSessions()
+        selectedSession = sessions.first
+        updateLists(with: selectedSession!)
     }
     
     private func setupKeyEventHandler() {
@@ -40,7 +46,15 @@ class TodoViewModel: ObservableObject {
         keyEventHandler.updateItems(getRelevantItems())
     }
     
+    func submitTextfield() {
+        
+    }
+    
     func handleTextFieldChange(_ newValue: String) {
+        if newValue != "" {
+            viewState = .focus
+        }
+        
         if newValue.last == "@" {
             isTagIntention = true
             filteredCategoryItems = categoryItems
@@ -88,58 +102,61 @@ class TodoViewModel: ObservableObject {
         case .todo:
             print("todo button clicked")
         case .category:
-            if let session = mockSessionData.first(where: { $0.name == item }) {
+            if let session = sessions.first(where: { $0.name == item }) {
                 selectedSession = session
                 updateLists(with: session)
                 viewState = .todo
-                removeTagFromFocusText()
+                addFocusToSession()
             }
         case .focus:
             if isTagIntention {
-                if let session = mockSessionData.first(where: { $0.name == item }) {
+                if let session = sessions.first(where: { $0.name == item }) {
                     selectedSession = session
                     updateLists(with: session)
                     viewState = .todo
-                    removeTagFromFocusText()
+                    addFocusToSession()
                 }
             } else {
+                
+                addFocusToSession()
+                viewState = .todo
                 focusText = item
+                
             }
-            viewState = .todo
         }
         updateKeyEventHandlerItems()
     }
     
     private func updateLists(with session: Session) {
-        todoItems = session.list
-        categoryItems = mockSessionData.map { $0.name }
+        todoItems = session.todo
+        categoryItems = sessions.map { $0.name }
         focusItems = session.focus
-        colorItems = mockSessionData.map { $0.color }
+        colorItems = sessions.map { $0.color }
         filteredCategoryItems = categoryItems
         filteredFocusItems = focusItems
     }
     
-    private func removeTagFromFocusText() {
-        if let atIndex = focusText.firstIndex(of: "@") {
-            focusText = String(focusText[..<atIndex]).trimmingCharacters(in: .whitespaces)
-        }
-    }
-    
-    private func loadMockData() {
-        guard let url = Bundle.main.url(forResource: "MockData", withExtension: "json") else {
-            print("MockData.json not found")
-            return
+    private func addFocusToSession() {
+        guard var updatedSession = selectedSession else { return }
+        
+        let newFocus = removeTagFromFocusText()
+        if !newFocus.isEmpty && !updatedSession.focus.contains(newFocus) {
+            updatedSession.focus.append(newFocus)
+            selectedSession = updatedSession
+            focusItems = updatedSession.focus
+            filteredFocusItems = focusItems
+            
+            // Update the session in UserDefaults
+            SessionDataManager.shared.updateSession(updatedSession)
         }
         
-        do {
-            let data = try Data(contentsOf: url)
-            let decoder = JSONDecoder()
-            mockSessionData = try decoder.decode([Session].self, from: data)
-            
-            selectedSession = mockSessionData.first
-            updateLists(with: selectedSession!)
-        } catch {
-            print("Error decoding MockData.json: \(error)")
+        focusText = ""
+    }
+    
+    private func removeTagFromFocusText() -> String {
+        if let atIndex = focusText.firstIndex(of: "@") {
+            return String(focusText[..<atIndex]).trimmingCharacters(in: .whitespaces)
         }
+        return focusText.trimmingCharacters(in: .whitespaces)
     }
 }

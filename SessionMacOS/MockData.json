@@ -8,7 +8,7 @@
         "User Interface 2",
         "User Interface 3"
       ],
-      "list": [
+      "todo": [
         "Graphic Design",
         "UI/UX Design",
         "Web Design",
@@ -26,7 +26,7 @@
         "Functional Programming",
         "OOP"
       ],
-      "list": [
+      "todo": [
         "Web Development",
         "Mobile App Development",
         "Data Structures",
@@ -44,7 +44,7 @@
         "Churn Rate",
         "Foobar Rate"
       ],
-      "list": [
+      "todo": [
         "Digital Marketing",
         "Content Marketing",
         "Social Media Marketing",
@@ -61,7 +61,7 @@
         "Risk Assessment",
         "Money Management"
       ],
-      "list": [
+      "todo": [
         "Accounting",
         "Investment",
         "Budgeting",
@@ -79,7 +79,7 @@
         "Customer Support",
         "Customer Support 2"
       ],
-      "list": [
+      "todo": [
         "Technical Support",
         "Customer Service",
         "Troubleshooting",
@@ -96,7 +96,7 @@
         "Sleep Hygiene",
         "Enough Sleep"
       ],
-      "list": [
+      "todo": [
         "Sleep Cycles",
         "Insomnia Management",
         "Sleep Environment",

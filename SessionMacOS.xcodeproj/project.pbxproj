@@ -10,6 +10,7 @@
 		0154F2AE2C87131100F02CD0 /* Color+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0154F2AD2C87131100F02CD0 /* Color+Extension.swift */; };
 		0154F2B02C87224000F02CD0 /* TodoViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0154F2AF2C87224000F02CD0 /* TodoViewModel.swift */; };
 		0154F2B62C87232100F02CD0 /* HoverableButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0154F2B52C87232100F02CD0 /* HoverableButton.swift */; };
+		0154F2B82C87278B00F02CD0 /* SessionDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0154F2B72C87278B00F02CD0 /* SessionDataManager.swift */; };
 		017AD8E72C86E42B001B1577 /* SessionMacOSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 017AD8E62C86E42B001B1577 /* SessionMacOSApp.swift */; };
 		017AD8E92C86E42B001B1577 /* TodoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 017AD8E82C86E42B001B1577 /* TodoView.swift */; };
 		017AD8EB2C86E42D001B1577 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 017AD8EA2C86E42D001B1577 /* Assets.xcassets */; };
@@ -23,6 +24,7 @@
 		0154F2AD2C87131100F02CD0 /* Color+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Color+Extension.swift"; sourceTree = "<group>"; };
 		0154F2AF2C87224000F02CD0 /* TodoViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoViewModel.swift; sourceTree = "<group>"; };
 		0154F2B52C87232100F02CD0 /* HoverableButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HoverableButton.swift; sourceTree = "<group>"; };
+		0154F2B72C87278B00F02CD0 /* SessionDataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionDataManager.swift; sourceTree = "<group>"; };
 		017AD8E32C86E42B001B1577 /* SessionMacOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SessionMacOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		017AD8E62C86E42B001B1577 /* SessionMacOSApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionMacOSApp.swift; sourceTree = "<group>"; };
 		017AD8E82C86E42B001B1577 /* TodoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoView.swift; sourceTree = "<group>"; };
@@ -50,6 +52,7 @@
 			children = (
 				017AD8F82C86E4F3001B1577 /* EventKeyHandler.swift */,
 				0154F2AD2C87131100F02CD0 /* Color+Extension.swift */,
+				0154F2B72C87278B00F02CD0 /* SessionDataManager.swift */,
 			);
 			path = Helpers;
 			sourceTree = "<group>";
@@ -107,8 +110,8 @@
 			isa = PBXGroup;
 			children = (
 				017AD8E62C86E42B001B1577 /* SessionMacOSApp.swift */,
-				0154F2B22C87227300F02CD0 /* Feature */,
 				0154F2B12C87225800F02CD0 /* Model */,
+				0154F2B22C87227300F02CD0 /* Feature */,
 				0154F2B42C87230000F02CD0 /* Components */,
 				0154F2AC2C87130400F02CD0 /* Helpers */,
 				017AD8FA2C86E61C001B1577 /* MockData.json */,
@@ -202,6 +205,7 @@
 				017AD8E92C86E42B001B1577 /* TodoView.swift in Sources */,
 				0154F2AE2C87131100F02CD0 /* Color+Extension.swift in Sources */,
 				0154F2B62C87232100F02CD0 /* HoverableButton.swift in Sources */,
+				0154F2B82C87278B00F02CD0 /* SessionDataManager.swift in Sources */,
 				017AD8F92C86E4F3001B1577 /* EventKeyHandler.swift in Sources */,
 				017AD8E72C86E42B001B1577 /* SessionMacOSApp.swift in Sources */,
 				017AD8F72C86E4B2001B1577 /* Session.swift in Sources */,

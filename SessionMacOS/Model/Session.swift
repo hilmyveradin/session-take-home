@@ -8,14 +8,14 @@
 import Foundation
 
 struct Session: Codable, Identifiable {
-    let id: String
-    let name: String
-    let focus: [String]
-    let list: [String]
-    let color: String
+    var id: String
+    var name: String
+    var focus: [String]
+    var todo: [String]
+    var color: String
     
     enum CodingKeys: String, CodingKey {
-        case focus, list, color
+        case focus, todo, color
     }
     
     init(from decoder: Decoder) throws {
@@ -28,7 +28,7 @@ struct Session: Codable, Identifiable {
         self.id = key
         self.name = key
         self.focus = value.focus
-        self.list = value.list
+        self.todo = value.todo
         self.color = value.color
     }
 }
@@ -36,7 +36,7 @@ struct Session: Codable, Identifiable {
 // This is a private struct used only for decoding
 private struct SessionContent: Codable {
     let focus: [String]
-    let list: [String]
+    let todo: [String]
     let color: String
 }
 
