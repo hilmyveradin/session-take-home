@@ -50,12 +50,12 @@ struct TodoView: View {
                     .focused($searchFocus)
                 
                 List {
-                    ForEach(0..<10) { _ in
+                    ForEach(selectedCategory?.list ?? [], id: \.self) { list in
                         HStack {
                             Image(systemName: "square")
-                            Text("Designing interface")
+                            Text(list)
                             Spacer()
-                            Text("Categories")
+                            Text(selectedCategory?.name ?? "")
                                 .font(.caption)
                                 .foregroundColor(.green)
                         }
@@ -73,17 +73,21 @@ struct TodoView: View {
                         .onTapGesture {
                             viewState = .none
                         }
-                                        List {
-                                            Text("Design").foregroundColor(.red)
-                                            Text("Programming").foregroundColor(.yellow)
-                                            Text("Marketing").foregroundColor(.green)
-                                            Text("Finance").foregroundColor(.mint)
-                                            Text("Support").foregroundColor(.blue)
-                                            Text("Sleep").foregroundColor(.purple)
-                                        }
-                                        .frame(maxHeight: 200)
-                                        .background(.background)
-                                        .listStyle(.plain)
+                    
+                    List {
+                        ForEach(mockCategoryData) { category in
+                            Button(action: {
+                                selectedCategory = category
+                                viewState = .none
+                            }, label: {
+                                Text(category.name)
+                            })
+                        }
+                    }
+                    .frame(maxHeight: 200)
+                    .background(.background)
+                    .listStyle(.plain)
+                    
                     Color.black.opacity(0.001)
                         .onTapGesture {
                             viewState = .none
@@ -100,17 +104,19 @@ struct TodoView: View {
                             searchFocus = false
                         }
                     
-                                        List {
-                                            Text("Designer")
-                                            Text("Developer")
-                                            Text("Debussy")
-                                            Text("Declarative")
-                                            Text("Design")
-                                            Text("Decorondum")
-                                        }
-                                        .frame(maxHeight: 200)
-                                        .background(.background)
-                                        .listStyle(.plain)
+                    List {
+                        ForEach(selectedCategory?.focus ?? [], id: \.self) { focus in
+                            Button(action: {
+                                viewState = .none
+                                searchFocus = false
+                            }, label: {
+                                Text(focus)
+                            })
+                        }
+                    }
+                    .frame(maxHeight: 200)
+                    .background(.background)
+                    .listStyle(.plain)
                     
                     Color.black.opacity(0.001)
                         .onTapGesture {
