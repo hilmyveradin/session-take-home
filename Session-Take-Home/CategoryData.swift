@@ -5,29 +5,36 @@
 //  Created by Hilmy Veradin on 03/09/24.
 //
 
-import SwiftUI
+import Foundation
 
-struct CategoryData: Codable, Identifiable {
+struct Category: Codable, Identifiable {
     let id: String
-    let category: Category
+    let name: String
+    let focus: [String]
+    let list: [String]
+    let color: String
     
     enum CodingKeys: String, CodingKey {
-        case id
-        case category
+        case focus, list, color
     }
     
     init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
-        let dict = try container.decode([String: Category].self)
+        let dict = try container.decode([String: CategoryContent].self)
         guard let (key, value) = dict.first else {
             throw DecodingError.dataCorruptedError(in: container, debugDescription: "Empty dictionary")
         }
+        
         self.id = key
-        self.category = value
+        self.name = key
+        self.focus = value.focus
+        self.list = value.list
+        self.color = value.color
     }
 }
 
-struct Category: Codable {
+// This is a private struct used only for decoding
+private struct CategoryContent: Codable {
     let focus: [String]
     let list: [String]
     let color: String

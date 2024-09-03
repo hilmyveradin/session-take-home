@@ -20,7 +20,7 @@ struct TodoView: View {
     @State private var selectedSuggestion: String?
     @State private var selectedCategory: Category?
     
-    @State private var mockCategoryData: [CategoryData] = []
+    @State private var mockCategoryData: [Category] = []
     @State private var viewState: TodoViewState = .none
     
     var body: some View {
@@ -28,7 +28,7 @@ struct TodoView: View {
         ZStack {
             VStack {
                 HStack {
-                    Text("Categories")
+                    Text(selectedCategory?.name ?? "Null")
                     Spacer()
                     Image(systemName: "chevron.down")
                 }
@@ -122,7 +122,23 @@ struct TodoView: View {
             }
         }
         .onAppear {
-            
+            loadMockData()
+        }
+    }
+    
+    func loadMockData() {
+        guard let url = Bundle.main.url(forResource: "MockData", withExtension: "json") else {
+            print("MockData.json not found")
+            return
+        }
+        
+        do {
+            let data = try Data(contentsOf: url)
+            let decoder = JSONDecoder()
+            mockCategoryData = try decoder.decode([Category].self, from: data)
+            selectedCategory = mockCategoryData[0]
+        } catch {
+            print("Error decoding MockData.json: \(error)")
         }
     }
 }
