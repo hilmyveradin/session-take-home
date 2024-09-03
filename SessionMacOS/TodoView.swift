@@ -57,6 +57,8 @@ struct TodoView: View {
     @State private var viewState: TodoViewState = .todo
     @State private var scrollTarget: Int?
     
+    @State private var isTagIntention = false
+    
     @StateObject private var keyEventHandler = KeyEventHandler()
     
     var body: some View {
@@ -80,11 +82,15 @@ struct TodoView: View {
                     .background(.background)
                     .frame(height: 50)
                     .focused($searchFocus)
+                    .onChange(of: focusText) { newValue in
+                        handleTextFieldChange(newValue)
+                    }
                     .onChange(of: searchFocus) { newValue in
                         if newValue {
                             viewState = .focus
                         }
                     }
+
                 
                 // Base Todo View
                 ScrollViewReader { proxy in
@@ -128,7 +134,7 @@ struct TodoView: View {
         }
     }
     
-    
+    // MARK: - View
     private func todoItemView(item: String, index: Int) -> some View {
         HoverableButton(isPriority: viewState == .todo, action: {
             selectItem(item)
@@ -185,7 +191,7 @@ struct TodoView: View {
             }
         })
         .id(index)
-        .background((index == keyEventHandler.selectedIndex && viewState == .category) ? Color.blue.opacity(0.2) : Color.clear)
+        .background(((index == keyEventHandler.selectedIndex && viewState == .category) || (isTagIntention && index == keyEventHandler.selectedIndex)) ? Color.blue.opacity(0.2) : Color.clear)
     }
 
     private func focusListView() -> some View {
@@ -198,16 +204,32 @@ struct TodoView: View {
                 }
             
             ScrollViewReader { proxy in
-                List {
-                    ForEach(Array(filteredFocusItems.enumerated()), id: \.element) { index, item in
-                        focusItemView(item: item, index: index)
+                if isTagIntention {
+                    ScrollViewReader { proxy in
+                        List {
+                            ForEach(Array(filteredCategoryItems.enumerated()), id: \.element) { index, item in
+                                categoryItemView(item: item, index: index)
+                            }
+                        }
+                        .frame(maxHeight: 200)
+                        .listStyle(.plain)
+                        .onChange(of: scrollTarget) { target in
+                            scrollToTarget(proxy: proxy, target: target)
+                        }
+                    }
+                } else {
+                    List {
+                        ForEach(Array(filteredFocusItems.enumerated()), id: \.element) { index, item in
+                            focusItemView(item: item, index: index)
+                        }
+                    }
+                    .frame(maxHeight: 200)
+                    .listStyle(.plain)
+                    .onChange(of: scrollTarget) { target in
+                        scrollToTarget(proxy: proxy, target: target)
                     }
                 }
-                .frame(maxHeight: 200)
-                .listStyle(.plain)
-                .onChange(of: scrollTarget) { target in
-                    scrollToTarget(proxy: proxy, target: target)
-                }
+
             }
             
             Color.black.opacity(0.001)
@@ -240,8 +262,35 @@ struct TodoView: View {
         }
     }
     
-    private func updateText() {
-        
+    // MARK: - Logic
+    private func handleTextFieldChange(_ newValue: String) {
+        if newValue.last == "@" {
+            isTagIntention = true
+            filteredCategoryItems = categoryItems
+        } else if newValue.contains("@") {
+            let components = newValue.split(separator: "@")
+            if components.count == 2 {
+                let afterAt = String(components[1])
+                if afterAt.contains(" ") {
+                    isTagIntention = false
+                    filteredFocusItems = focusItems
+                } else {
+                    isTagIntention = true
+                    filterCategories(afterAt)
+                }
+            }
+        } else {
+            filterFocusItems(newValue)
+        }
+        updateKeyEventHandlerItems()
+    }
+
+    private func filterCategories(_ filter: String) {
+        filteredCategoryItems = categoryItems.filter { $0.lowercased().starts(with: filter.lowercased()) }
+    }
+
+    private func filterFocusItems(_ filter: String) {
+        filteredFocusItems = focusItems.filter { $0.lowercased().contains(filter.lowercased()) }
     }
     
     private func updateKeyEventHandlerItems() {
@@ -249,6 +298,11 @@ struct TodoView: View {
     }
     
     private func getRelevantItems() -> [String] {
+        
+        if isTagIntention {
+            return filteredCategoryItems
+        }
+        
         switch viewState {
         case .todo:
             return todoItems
@@ -256,6 +310,7 @@ struct TodoView: View {
             return filteredCategoryItems
         case .focus:
             return filteredFocusItems
+            
         }
     }
     
@@ -266,16 +321,48 @@ struct TodoView: View {
         case .category:
             if let session = mockSessionData.first(where: { $0.name == item }) {
                 selectedSession = session
+                
+                todoItems = selectedSession?.list ?? []
+                categoryItems = mockSessionData.map { $0.name }
+                focusItems = selectedSession?.focus ?? []
+                
+                filteredCategoryItems = categoryItems
+                filteredFocusItems = focusItems
+                
                 viewState = .todo
-                focusText = ""
+                if let atIndex = focusText.firstIndex(of: "@") {
+                    focusText = String(focusText[..<atIndex]).trimmingCharacters(in: .whitespaces)
+                }
                 print("category button clicked")
             }
         case .focus:
-            focusText = item
+            
+            if isTagIntention {
+                if let session = mockSessionData.first(where: { $0.name == item }) {
+                    selectedSession = session
+                    
+                    todoItems = selectedSession?.list ?? []
+                    categoryItems = mockSessionData.map { $0.name }
+                    focusItems = selectedSession?.focus ?? []
+                    
+                    filteredCategoryItems = categoryItems
+                    filteredFocusItems = focusItems
+                    
+                    viewState = .todo
+                    if let atIndex = focusText.firstIndex(of: "@") {
+                        focusText = String(focusText[..<atIndex]).trimmingCharacters(in: .whitespaces)
+                    }
+                    print("category button clicked")
+                }
+            } else {
+                focusText = item
+            }
+            
             viewState = .todo
             searchFocus = false
             print("focus intention clicked")
         }
+        updateKeyEventHandlerItems()
     }
     
     private func loadMockData() {
