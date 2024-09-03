@@ -46,15 +46,7 @@ class TodoViewModel: ObservableObject {
         keyEventHandler.updateItems(getRelevantItems())
     }
     
-    func submitTextfield() {
-        
-    }
-    
     func handleTextFieldChange(_ newValue: String) {
-        if newValue != "" {
-            viewState = .focus
-        }
-        
         if newValue.last == "@" {
             isTagIntention = true
             filteredCategoryItems = categoryItems
@@ -97,7 +89,7 @@ class TodoViewModel: ObservableObject {
         }
     }
     
-    func selectItem(_ item: String) {
+    func selectItem(_ item: String, action: (() -> Void)? = nil) {
         switch viewState {
         case .todo:
             print("todo button clicked")
@@ -125,6 +117,7 @@ class TodoViewModel: ObservableObject {
             }
         }
         updateKeyEventHandlerItems()
+        action?()
     }
     
     private func updateLists(with session: Session) {

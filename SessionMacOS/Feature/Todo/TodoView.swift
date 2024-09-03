@@ -65,12 +65,12 @@ struct TodoView: View {
             .focused($searchFocus)
             .onChange(of: viewModel.focusText) { viewModel.handleTextFieldChange($0) }
             .onChange(of: searchFocus) { if $0 { viewModel.viewState = .focus }}
-//            .onSubmit {
-//                viewModel.viewState = .focus
-//                viewModel.selectItem(viewModel.focusText)
-//                searchFocus = false
-//                viewModel.viewState = .todo
-//            }
+            .onSubmit {
+                viewModel.selectItem(viewModel.focusText) {
+                    searchFocus = false
+                }
+                
+            }
     }
     
     private var todoList: some View {
@@ -103,7 +103,7 @@ struct TodoView: View {
             if hovering && viewModel.viewState == .todo {
                 viewModel.keyEventHandler.selectedIndex = index
             } else {
-                viewModel.keyEventHandler.selectedIndex = -99
+                viewModel.keyEventHandler.selectedIndex = -1
             }
         }
         .id(index)
@@ -151,7 +151,7 @@ struct TodoView: View {
             if hovering && viewModel.viewState == .category {
                 viewModel.keyEventHandler.selectedIndex = index
             } else {
-                viewModel.keyEventHandler.selectedIndex = -99
+                viewModel.keyEventHandler.selectedIndex = -1
             }
         }
         .id(index)
@@ -205,7 +205,9 @@ struct TodoView: View {
     
     private func focusItemView(item: String, index: Int) -> some View {
         HoverableButton(isPriority: viewModel.viewState == .focus, action: {
-            viewModel.selectItem(item)
+            viewModel.selectItem(item) {
+                searchFocus = false
+            }
         }) {
             HStack {
                 Text(item)
@@ -216,7 +218,7 @@ struct TodoView: View {
             if hovering && viewModel.viewState == .focus {
                 viewModel.keyEventHandler.selectedIndex = index
             } else {
-                viewModel.keyEventHandler.selectedIndex = -99
+                viewModel.keyEventHandler.selectedIndex = -1
             }
         }
         .id(index)
