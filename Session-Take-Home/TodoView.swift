@@ -13,6 +13,30 @@ enum TodoViewState {
     case focus
 }
 
+struct HoverableButton<Content: View>: View {
+    let action: () -> Void
+    let content: () -> Content
+    @State private var isHovering = false
+    
+    init(action: @escaping () -> Void, @ViewBuilder content: @escaping () -> Content) {
+        self.action = action
+        self.content = content
+    }
+    
+    var body: some View {
+        Button(action: action) {
+            content()
+                .padding(8)
+                .background(isHovering ? Color.blue.opacity(0.2) : Color.clear)
+                .cornerRadius(5)
+        }
+        .buttonStyle(PlainButtonStyle())
+        .onHover { hovering in
+            isHovering = hovering
+        }
+    }
+}
+
 struct TodoView: View {
     @State private var focusText = ""
     @FocusState private var searchFocus: Bool
@@ -22,6 +46,17 @@ struct TodoView: View {
     
     @State private var mockCategoryData: [Category] = []
     @State private var viewState: TodoViewState = .none
+    
+    var filteredFocusItems: [String] {
+        guard let category = selectedCategory else { return [] }
+        
+        if focusText == "" {
+            return category.focus
+        } else {
+            return category.focus.filter { $0.lowercased().contains(focusText.lowercased()) }
+        }
+        
+    }
     
     var body: some View {
         
@@ -38,6 +73,7 @@ struct TodoView: View {
                     viewState = .category
                 }
                 .frame(height: 50)
+                .hoverEffect(.highlight)
                 
                 TextField("What's your focus?", text: $focusText)
                     .padding()
@@ -48,17 +84,23 @@ struct TodoView: View {
                     }
                     .frame(height: 50)
                     .focused($searchFocus)
+                    .hoverEffect(.highlight)
                 
                 List {
                     ForEach(selectedCategory?.list ?? [], id: \.self) { list in
-                        HStack {
-                            Image(systemName: "square")
-                            Text(list)
-                            Spacer()
-                            Text(selectedCategory?.name ?? "")
-                                .font(.caption)
-                                .foregroundColor(.green)
-                        }
+                        HoverableButton(action: {
+                            
+                        }, content: {
+                            HStack {
+                                Image(systemName: "square")
+                                Text(list)
+                                Spacer()
+                                Text(selectedCategory?.name ?? "")
+                                    .font(.caption)
+                                    .foregroundColor(.green)
+                            }
+                        })
+
                     }
                 }
             }
@@ -76,12 +118,18 @@ struct TodoView: View {
                     
                     List {
                         ForEach(mockCategoryData) { category in
-                            Button(action: {
+                            
+                            HoverableButton(action: {
                                 selectedCategory = category
                                 viewState = .none
-                            }, label: {
-                                Text(category.name)
+                            }, content: {
+                                HStack {
+                                    Text(category.name)
+                                    Spacer()
+                                }
+                                
                             })
+                            
                         }
                     }
                     .frame(maxHeight: 200)
@@ -105,12 +153,16 @@ struct TodoView: View {
                         }
                     
                     List {
-                        ForEach(selectedCategory?.focus ?? [], id: \.self) { focus in
-                            Button(action: {
+                        ForEach(filteredFocusItems, id: \.self) { focus in
+                            HoverableButton(action: {
                                 viewState = .none
                                 searchFocus = false
-                            }, label: {
-                                Text(focus)
+                            }, content: {
+                                HStack {
+                                    Text(focus)
+                                    Spacer()
+                                }
+                                
                             })
                         }
                     }
