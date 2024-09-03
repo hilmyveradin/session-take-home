@@ -280,6 +280,7 @@ struct TodoView: View {
                 }
             }
         } else {
+            isTagIntention = false
             filterFocusItems(newValue)
         }
         updateKeyEventHandlerItems()
@@ -290,7 +291,12 @@ struct TodoView: View {
     }
 
     private func filterFocusItems(_ filter: String) {
-        filteredFocusItems = focusItems.filter { $0.lowercased().contains(filter.lowercased()) }
+        if filter == "" {
+            filteredFocusItems = focusItems
+        } else {
+            filteredFocusItems = focusItems.filter { $0.lowercased().contains(filter.lowercased()) }
+        }
+
     }
     
     private func updateKeyEventHandlerItems() {
