@@ -7,7 +7,6 @@
 
 import SwiftUI
 
-// MARK: - ViewModel
 class TodoViewModel: ObservableObject {
     @Published var focusText = ""
     @Published var selectedSession: Session?
