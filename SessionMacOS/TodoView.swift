@@ -49,6 +49,7 @@ struct TodoView: View {
     
     @State private var todoItems: [String] = []
     @State private var categoryItems: [String] = []
+    @State private var colorItems: [String] = []
     @State private var focusItems: [String] = []
     
     @State private var filteredCategoryItems: [String] = []
@@ -145,7 +146,7 @@ struct TodoView: View {
                 Spacer()
                 Text(selectedSession?.name ?? "")
                     .font(.caption)
-                    .foregroundColor(.green)
+                    .foregroundColor(Color(hex: selectedSession?.color ?? ""))
             }
         })
         .id(index)
@@ -154,7 +155,7 @@ struct TodoView: View {
 
     private func categoryListView() -> some View {
         VStack {
-            Color.black.opacity(0.1)
+            Color.black.opacity(0.001)
                 .frame(height: 50)
                 .onTapGesture {
                     viewState = .todo
@@ -173,7 +174,7 @@ struct TodoView: View {
                 }
             }
             
-            Color.black.opacity(0.1)
+            Color.black.opacity(0.01)
                 .onTapGesture {
                     viewState = .todo
                 }
@@ -186,6 +187,9 @@ struct TodoView: View {
             selectItem(item)
         }, content: {
             HStack {
+                Circle()
+                    .frame(width: 5, height: 5)
+                    .foregroundStyle(Color(hex: colorItems[index]))
                 Text(item)
                 Spacer()
             }
@@ -196,7 +200,7 @@ struct TodoView: View {
 
     private func focusListView() -> some View {
         VStack {
-            Color.black.opacity(0.1)
+            Color.black.opacity(0.01)
                 .frame(height: 110)
                 .onTapGesture {
                     viewState = .todo
@@ -331,6 +335,7 @@ struct TodoView: View {
                 todoItems = selectedSession?.list ?? []
                 categoryItems = mockSessionData.map { $0.name }
                 focusItems = selectedSession?.focus ?? []
+                colorItems = mockSessionData.map { $0.color }
                 
                 filteredCategoryItems = categoryItems
                 filteredFocusItems = focusItems
@@ -388,6 +393,7 @@ struct TodoView: View {
             todoItems = selectedSession?.list ?? []
             categoryItems = mockSessionData.map { $0.name }
             focusItems = selectedSession?.focus ?? []
+            colorItems = mockSessionData.map { $0.color }
             
             filteredCategoryItems = categoryItems
             filteredFocusItems = focusItems

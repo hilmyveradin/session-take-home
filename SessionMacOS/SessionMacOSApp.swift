@@ -12,6 +12,7 @@ struct SessionMacOSApp: App {
     var body: some Scene {
         WindowGroup {
             TodoView()
+                .preferredColorScheme(.light)
         }
     }
 }
