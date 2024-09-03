@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		0154F2AE2C87131100F02CD0 /* Color+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0154F2AD2C87131100F02CD0 /* Color+Extension.swift */; };
+		0154F2B02C87224000F02CD0 /* TodoViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0154F2AF2C87224000F02CD0 /* TodoViewModel.swift */; };
+		0154F2B62C87232100F02CD0 /* HoverableButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0154F2B52C87232100F02CD0 /* HoverableButton.swift */; };
 		017AD8E72C86E42B001B1577 /* SessionMacOSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 017AD8E62C86E42B001B1577 /* SessionMacOSApp.swift */; };
 		017AD8E92C86E42B001B1577 /* TodoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 017AD8E82C86E42B001B1577 /* TodoView.swift */; };
 		017AD8EB2C86E42D001B1577 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 017AD8EA2C86E42D001B1577 /* Assets.xcassets */; };
@@ -19,6 +21,8 @@
 
 /* Begin PBXFileReference section */
 		0154F2AD2C87131100F02CD0 /* Color+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Color+Extension.swift"; sourceTree = "<group>"; };
+		0154F2AF2C87224000F02CD0 /* TodoViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoViewModel.swift; sourceTree = "<group>"; };
+		0154F2B52C87232100F02CD0 /* HoverableButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HoverableButton.swift; sourceTree = "<group>"; };
 		017AD8E32C86E42B001B1577 /* SessionMacOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SessionMacOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		017AD8E62C86E42B001B1577 /* SessionMacOSApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionMacOSApp.swift; sourceTree = "<group>"; };
 		017AD8E82C86E42B001B1577 /* TodoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoView.swift; sourceTree = "<group>"; };
@@ -44,9 +48,43 @@
 		0154F2AC2C87130400F02CD0 /* Helpers */ = {
 			isa = PBXGroup;
 			children = (
+				017AD8F82C86E4F3001B1577 /* EventKeyHandler.swift */,
 				0154F2AD2C87131100F02CD0 /* Color+Extension.swift */,
 			);
 			path = Helpers;
+			sourceTree = "<group>";
+		};
+		0154F2B12C87225800F02CD0 /* Model */ = {
+			isa = PBXGroup;
+			children = (
+				017AD8F62C86E4B2001B1577 /* Session.swift */,
+			);
+			path = Model;
+			sourceTree = "<group>";
+		};
+		0154F2B22C87227300F02CD0 /* Feature */ = {
+			isa = PBXGroup;
+			children = (
+				0154F2B32C87227900F02CD0 /* Todo */,
+			);
+			path = Feature;
+			sourceTree = "<group>";
+		};
+		0154F2B32C87227900F02CD0 /* Todo */ = {
+			isa = PBXGroup;
+			children = (
+				017AD8E82C86E42B001B1577 /* TodoView.swift */,
+				0154F2AF2C87224000F02CD0 /* TodoViewModel.swift */,
+			);
+			path = Todo;
+			sourceTree = "<group>";
+		};
+		0154F2B42C87230000F02CD0 /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				0154F2B52C87232100F02CD0 /* HoverableButton.swift */,
+			);
+			path = Components;
 			sourceTree = "<group>";
 		};
 		017AD8DA2C86E42B001B1577 = {
@@ -69,9 +107,9 @@
 			isa = PBXGroup;
 			children = (
 				017AD8E62C86E42B001B1577 /* SessionMacOSApp.swift */,
-				017AD8E82C86E42B001B1577 /* TodoView.swift */,
-				017AD8F82C86E4F3001B1577 /* EventKeyHandler.swift */,
-				017AD8F62C86E4B2001B1577 /* Session.swift */,
+				0154F2B22C87227300F02CD0 /* Feature */,
+				0154F2B12C87225800F02CD0 /* Model */,
+				0154F2B42C87230000F02CD0 /* Components */,
 				0154F2AC2C87130400F02CD0 /* Helpers */,
 				017AD8FA2C86E61C001B1577 /* MockData.json */,
 				017AD8EA2C86E42D001B1577 /* Assets.xcassets */,
@@ -160,8 +198,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0154F2B02C87224000F02CD0 /* TodoViewModel.swift in Sources */,
 				017AD8E92C86E42B001B1577 /* TodoView.swift in Sources */,
 				0154F2AE2C87131100F02CD0 /* Color+Extension.swift in Sources */,
+				0154F2B62C87232100F02CD0 /* HoverableButton.swift in Sources */,
 				017AD8F92C86E4F3001B1577 /* EventKeyHandler.swift in Sources */,
 				017AD8E72C86E42B001B1577 /* SessionMacOSApp.swift in Sources */,
 				017AD8F72C86E4B2001B1577 /* Session.swift in Sources */,
