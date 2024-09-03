@@ -14,11 +14,13 @@ enum TodoViewState {
 }
 
 struct HoverableButton<Content: View>: View {
+    let isPriority: Bool
     let action: () -> Void
     let content: () -> Content
     @State private var isHovering = false
     
-    init(action: @escaping () -> Void, @ViewBuilder content: @escaping () -> Content) {
+    init(isPriority: Bool, action: @escaping () -> Void, @ViewBuilder content: @escaping () -> Content) {
+        self.isPriority = isPriority
         self.action = action
         self.content = content
     }
@@ -34,6 +36,7 @@ struct HoverableButton<Content: View>: View {
         .onHover { hovering in
             isHovering = hovering
         }
+        .allowsHitTesting(isPriority)
     }
 }
 
@@ -90,9 +93,9 @@ struct TodoView: View {
 //                // Base Todo View
                 List {
                     ForEach(Array(getRelevantItems().enumerated()), id: \.element) { index, item in
-                        HoverableButton(action: {
+                        HoverableButton(isPriority: viewState == .todo, action: {
                             selectItem(item)
-                        }) {
+                        }, content: {
                             HStack {
                                 Image(systemName: "square")
                                 Text(item)
@@ -103,7 +106,7 @@ struct TodoView: View {
                                         .foregroundColor(.green)
                                 }
                             }
-                        }
+                        })
                         .background((index == keyEventHandler.selectedIndex && viewState == .todo) ? Color.blue.opacity(0.2) : Color.clear)
                     }
                 }
@@ -114,7 +117,7 @@ struct TodoView: View {
                 EmptyView()
             case .category:
                 VStack {
-                    Color.black.opacity(0.001)
+                    Color.black.opacity(0.1)
                         .frame(height: 50)
                         .onTapGesture {
                             viewState = .todo
@@ -124,7 +127,7 @@ struct TodoView: View {
                     List {
                         ForEach(Array(getRelevantItems().enumerated()), id: \.element) { index, item in
 
-                            HoverableButton(action: {
+                            HoverableButton(isPriority: viewState == .category, action: {
                                 selectItem(item)
                             }, content: {
                                 HStack {
@@ -140,7 +143,7 @@ struct TodoView: View {
                     .frame(maxHeight: 200)
                     .listStyle(.plain)
                     
-                    Color.black.opacity(0.001)
+                    Color.black.opacity(0.1)
                         .onTapGesture {
                             viewState = .todo
                         }
@@ -149,7 +152,7 @@ struct TodoView: View {
                 .zIndex(2)
             case .focus:
                 VStack {
-                    Color.black.opacity(0.001)
+                    Color.black.opacity(0.1)
                         .frame(height: 110)
                         .onTapGesture {
                             viewState = .todo
@@ -159,7 +162,7 @@ struct TodoView: View {
                     // Focus view list
                     List {
                         ForEach(Array(getRelevantItems().enumerated()), id: \.element) { index, item in
-                            HoverableButton(action: {
+                            HoverableButton(isPriority: viewState == .focus, action: {
                                 selectItem(item)
                             }, content: {
                                 HStack {
