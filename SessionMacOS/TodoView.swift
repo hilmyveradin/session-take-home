@@ -8,7 +8,7 @@
 import SwiftUI
 
 enum TodoViewState {
-    case none
+    case todo
     case category
     case focus
 }
@@ -45,7 +45,7 @@ struct TodoView: View {
     @State private var selectedSession: Session?
     
     @State private var mockSessionData: [Session] = []
-    @State private var viewState: TodoViewState = .none
+    @State private var viewState: TodoViewState = .todo
     
     @StateObject private var keyEventHandler = KeyEventHandler()
     
@@ -61,7 +61,7 @@ struct TodoView: View {
     }
     
     var body: some View {
-        
+
         ZStack {
             VStack {
                 HStack {
@@ -79,10 +79,6 @@ struct TodoView: View {
                 TextField("What's your focus?", text: $focusText)
                     .padding()
                     .background(.background)
-                    .onTapGesture {
-
-                        searchFocus = true
-                    }
                     .frame(height: 50)
                     .focused($searchFocus)
                     .onChange(of: searchFocus) { newValue in
@@ -91,58 +87,62 @@ struct TodoView: View {
                         }
                     }
                 
+//                // Base Todo View
                 List {
-                    ForEach(selectedSession?.list ?? [], id: \.self) { list in
+                    ForEach(Array(getRelevantItems().enumerated()), id: \.element) { index, item in
                         HoverableButton(action: {
-                        }, content: {
+                            selectItem(item)
+                        }) {
                             HStack {
                                 Image(systemName: "square")
-                                Text(list)
+                                Text(item)
                                 Spacer()
-                                Text(selectedSession?.name ?? "")
-                                    .font(.caption)
-                                    .foregroundColor(.green)
+                                if viewState == .todo {
+                                    Text(selectedSession?.name ?? "")
+                                        .font(.caption)
+                                        .foregroundColor(.green)
+                                }
                             }
-                        })
-
+                        }
+                        .background(index == keyEventHandler.selectedIndex ? Color.blue.opacity(0.2) : Color.clear)
                     }
                 }
             }
             
             switch viewState {
-            case .none:
+            case .todo:
                 EmptyView()
             case .category:
                 VStack {
                     Color.black.opacity(0.001)
                         .frame(height: 50)
                         .onTapGesture {
-                            viewState = .none
+                            viewState = .todo
                         }
                     
+                    // Category List View
                     List {
-                        ForEach(mockSessionData) { category in
-                            
+                        ForEach(Array(getRelevantItems().enumerated()), id: \.element) { index, item in
+
                             HoverableButton(action: {
-                                selectedSession = category
-                                viewState = .none
+                                selectItem(item)
                             }, content: {
                                 HStack {
-                                    Text(category.name)
+                                    Text(item)
                                     Spacer()
                                 }
                                 
                             })
+                            .background(index == keyEventHandler.selectedIndex ? Color.blue.opacity(0.2) : Color.clear)
                             
                         }
                     }
                     .frame(maxHeight: 200)
-                    .background(.background)
                     .listStyle(.plain)
                     
                     Color.black.opacity(0.001)
                         .onTapGesture {
-                            viewState = .none
+                            viewState = .todo
                         }
 
                 }
@@ -152,31 +152,31 @@ struct TodoView: View {
                     Color.black.opacity(0.001)
                         .frame(height: 110)
                         .onTapGesture {
-                            viewState = .none
+                            viewState = .todo
                             searchFocus = false
                         }
                     
+                    // Focus view list
                     List {
-                        ForEach(filteredFocusItems, id: \.self) { focus in
+                        ForEach(Array(getRelevantItems().enumerated()), id: \.element) { index, item in
                             HoverableButton(action: {
-                                viewState = .none
-                                searchFocus = false
+                                selectItem(item)
                             }, content: {
                                 HStack {
-                                    Text(focus)
+                                    Text(item)
                                     Spacer()
                                 }
                                 
                             })
+                            .background(index == keyEventHandler.selectedIndex ? Color.blue.opacity(0.2) : Color.clear)
                         }
                     }
                     .frame(maxHeight: 200)
-                    .background(.background)
                     .listStyle(.plain)
                     
                     Color.black.opacity(0.001)
                         .onTapGesture {
-                            viewState = .none
+                            viewState = .todo
                             searchFocus = false
                         }
                 }
@@ -185,10 +185,54 @@ struct TodoView: View {
         }
         .onAppear {
             loadMockData()
+            keyEventHandler.startMonitoring()
+            keyEventHandler.onSelect = { selectItem($0) }
+        }
+        .onDisappear {
+            keyEventHandler.stopMonitoring()
+        }
+        .onChange(of: viewState) { _ in
+            updateKeyEventHandlerItems()
+        }
+        .onChange(of: filteredFocusItems) { _ in
+            updateKeyEventHandlerItems()
         }
     }
     
-    func loadMockData() {
+    private func updateKeyEventHandlerItems() {
+        keyEventHandler.updateItems(getRelevantItems())
+    }
+    
+    private func getRelevantItems() -> [String] {
+        switch viewState {
+        case .todo:
+            return selectedSession?.list ?? []
+        case .category:
+            return mockSessionData.map { $0.name }
+        case .focus:
+            return filteredFocusItems
+        }
+    }
+    
+    private func selectItem(_ item: String) {
+        switch viewState {
+        case .todo:
+            print("todo button clicked")
+        case .category:
+            if let session = mockSessionData.first(where: { $0.name == item }) {
+                selectedSession = session
+                viewState = .todo
+                print("category button clicked")
+            }
+        case .focus:
+            focusText = item
+            viewState = .todo
+            searchFocus = false
+            print("focus intention clicked")
+        }
+    }
+    
+    private func loadMockData() {
         guard let url = Bundle.main.url(forResource: "MockData", withExtension: "json") else {
             print("MockData.json not found")
             return
