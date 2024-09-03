@@ -1,0 +1,110 @@
+[
+  {
+    "design": {
+      "focus": [
+        "Visual Communication",
+        "User Experience",
+        "User Interface",
+        "User Interface 2",
+        "User Interface 3"
+      ],
+      "list": [
+        "Graphic Design",
+        "UI/UX Design",
+        "Web Design",
+        "Product Design",
+        "Brand Identity"
+      ],
+      "color": "#FF5733"
+    }
+  },
+  {
+    "programming": {
+      "focus": [
+        "Software Development",
+        "Problem Solving",
+        "Functional Programming",
+        "OOP"
+      ],
+      "list": [
+        "Web Development",
+        "Mobile App Development",
+        "Data Structures",
+        "Algorithms",
+        "Database Management"
+      ],
+      "color": "#33FF57"
+    }
+  },
+  {
+    "marketing": {
+      "focus": [
+        "Brand Awareness",
+        "Customer Acquisition",
+        "Churn Rate",
+        "Foobar Rate"
+      ],
+      "list": [
+        "Digital Marketing",
+        "Content Marketing",
+        "Social Media Marketing",
+        "SEO",
+        "Email Marketing"
+      ],
+      "color": "#3357FF"
+    }
+  },
+  {
+    "finance": {
+      "focus": [
+        "Financial Management",
+        "Risk Assessment",
+        "Money Management"
+      ],
+      "list": [
+        "Accounting",
+        "Investment",
+        "Budgeting",
+        "Financial Analysis",
+        "Tax Planning"
+      ],
+      "color": "#FF33F1"
+    }
+  },
+  {
+    "support": {
+      "focus": [
+        "Customer Satisfaction",
+        "Problem Resolution",
+        "Customer Support",
+        "Customer Support 2"
+      ],
+      "list": [
+        "Technical Support",
+        "Customer Service",
+        "Troubleshooting",
+        "Product Knowledge",
+        "Complaint Handling"
+      ],
+      "color": "#33FFF1"
+    }
+  },
+  {
+    "sleep": {
+      "focus": [
+        "Rest Quality",
+        "Sleep Hygiene",
+        "Enough Sleep"
+      ],
+      "list": [
+        "Sleep Cycles",
+        "Insomnia Management",
+        "Sleep Environment",
+        "Relaxation Techniques",
+        "Sleep Disorders"
+      ],
+      "color": "#8033FF"
+    }
+  }
+]
+
