@@ -13,6 +13,7 @@ class KeyEventHandler: ObservableObject {
     
     var items: [String] = []
     var onSelect: ((String) -> Void)?
+    var onScroll: ((Int) -> Void)?
     
     private var monitor: Any?
     
@@ -40,8 +41,10 @@ class KeyEventHandler: ObservableObject {
         switch event.keyCode {
         case 125: // Down arrow
             selectedIndex = min(selectedIndex + 1, items.count - 1)
+            onScroll?(selectedIndex)
         case 126: // Up arrow
             selectedIndex = max(selectedIndex - 1, 0)
+            onScroll?(selectedIndex)
         case 36: // Enter
             if selectedIndex >= 0 && selectedIndex < items.count {
                 onSelect?(items[selectedIndex])

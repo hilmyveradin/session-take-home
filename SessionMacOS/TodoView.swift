@@ -49,6 +49,7 @@ struct TodoView: View {
     
     @State private var mockSessionData: [Session] = []
     @State private var viewState: TodoViewState = .todo
+    @State private var scrollTarget: Int?
     
     @StateObject private var keyEventHandler = KeyEventHandler()
     
@@ -91,25 +92,36 @@ struct TodoView: View {
                     }
                 
 //                // Base Todo View
-                List {
-                    ForEach(Array(getRelevantItems().enumerated()), id: \.element) { index, item in
-                        HoverableButton(isPriority: viewState == .todo, action: {
-                            selectItem(item)
-                        }, content: {
-                            HStack {
-                                Image(systemName: "square")
-                                Text(item)
-                                Spacer()
-                                if viewState == .todo {
-                                    Text(selectedSession?.name ?? "")
-                                        .font(.caption)
-                                        .foregroundColor(.green)
+                ScrollViewReader { proxy in
+                    List {
+                        ForEach(Array(getRelevantItems().enumerated()), id: \.element) { index, item in
+                            HoverableButton(isPriority: viewState == .todo, action: {
+                                selectItem(item)
+                            }, content: {
+                                HStack {
+                                    Image(systemName: "square")
+                                    Text(item)
+                                    Spacer()
+                                    if viewState == .todo {
+                                        Text(selectedSession?.name ?? "")
+                                            .font(.caption)
+                                            .foregroundColor(.green)
+                                    }
                                 }
+                            })
+                            .id(index)
+                            .background((index == keyEventHandler.selectedIndex && viewState == .todo) ? Color.blue.opacity(0.2) : Color.clear)
+                        }
+                    }
+                    .onChange(of: scrollTarget) { target in
+                        if let target = target {
+                            withAnimation {
+                                proxy.scrollTo(target, anchor: .center)
                             }
-                        })
-                        .background((index == keyEventHandler.selectedIndex && viewState == .todo) ? Color.blue.opacity(0.2) : Color.clear)
+                        }
                     }
                 }
+
             }
             
             switch viewState {
@@ -124,24 +136,35 @@ struct TodoView: View {
                         }
                     
                     // Category List View
-                    List {
-                        ForEach(Array(getRelevantItems().enumerated()), id: \.element) { index, item in
+                    ScrollViewReader { proxy in
+                        List {
+                            ForEach(Array(getRelevantItems().enumerated()), id: \.element) { index, item in
 
-                            HoverableButton(isPriority: viewState == .category, action: {
-                                selectItem(item)
-                            }, content: {
-                                HStack {
-                                    Text(item)
-                                    Spacer()
-                                }
+                                HoverableButton(isPriority: viewState == .category, action: {
+                                    selectItem(item)
+                                }, content: {
+                                    HStack {
+                                        Text(item)
+                                        Spacer()
+                                    }
+                                    
+                                })
+                                .id(index)
+                                .background((index == keyEventHandler.selectedIndex && viewState == .category) ? Color.blue.opacity(0.2) : Color.clear)
                                 
-                            })
-                            .background((index == keyEventHandler.selectedIndex && viewState == .category) ? Color.blue.opacity(0.2) : Color.clear)
-                            
+                            }
+                        }
+                        .frame(maxHeight: 200)
+                        .listStyle(.plain)
+                        .onChange(of: scrollTarget) { target in
+                            if let target = target {
+                                withAnimation {
+                                    proxy.scrollTo(target, anchor: .center)
+                                }
+                            }
                         }
                     }
-                    .frame(maxHeight: 200)
-                    .listStyle(.plain)
+
                     
                     Color.black.opacity(0.1)
                         .onTapGesture {
@@ -160,22 +183,33 @@ struct TodoView: View {
                         }
                     
                     // Focus view list
-                    List {
-                        ForEach(Array(getRelevantItems().enumerated()), id: \.element) { index, item in
-                            HoverableButton(isPriority: viewState == .focus, action: {
-                                selectItem(item)
-                            }, content: {
-                                HStack {
-                                    Text(item)
-                                    Spacer()
+                    ScrollViewReader { proxy in
+                        List {
+                            ForEach(Array(getRelevantItems().enumerated()), id: \.element) { index, item in
+                                HoverableButton(isPriority: viewState == .focus, action: {
+                                    selectItem(item)
+                                }, content: {
+                                    HStack {
+                                        Text(item)
+                                        Spacer()
+                                    }
+                                    
+                                })
+                                .id(index)
+                                .background((index == keyEventHandler.selectedIndex && viewState == .focus) ? Color.blue.opacity(0.2) : Color.clear)
+                            }
+                        }
+                        .frame(maxHeight: 200)
+                        .listStyle(.plain)
+                        .onChange(of: scrollTarget) { target in
+                            if let target = target {
+                                withAnimation {
+                                    proxy.scrollTo(target, anchor: .center)
                                 }
-                                
-                            })
-                            .background((index == keyEventHandler.selectedIndex && viewState == .focus) ? Color.blue.opacity(0.2) : Color.clear)
+                            }
                         }
                     }
-                    .frame(maxHeight: 200)
-                    .listStyle(.plain)
+
                     
                     Color.black.opacity(0.001)
                         .onTapGesture {
@@ -190,6 +224,9 @@ struct TodoView: View {
             loadMockData()
             keyEventHandler.startMonitoring()
             keyEventHandler.onSelect = { selectItem($0) }
+            keyEventHandler.onScroll = { index in
+                scrollTarget = index
+            }
         }
         .onDisappear {
             keyEventHandler.stopMonitoring()
