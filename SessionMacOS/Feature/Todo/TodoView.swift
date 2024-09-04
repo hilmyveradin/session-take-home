@@ -52,6 +52,7 @@ struct TodoView: View {
             Spacer()
             Image(systemName: "chevron.down")
         }
+        .contentShape(Rectangle())
         .padding()
         .background(.background)
         .onTapGesture { viewModel.onCategoryHeaderTap() }
@@ -102,12 +103,15 @@ struct TodoView: View {
                     .font(.caption)
                     .foregroundColor(Color(hex: item.category.color))
             }
+            .padding(8)
+            .contentShape(Rectangle())
         }
         .onHover { hovering in
             viewModel.onTodoItemHover(hovering: hovering, index: index)
         }
         .id(index)
         .background(viewModel.isItemViewHovered(index: index, currentState: .todoList) ? Color.blue.opacity(0.2) : Color.clear)
+        .clipShape(.rect(cornerRadius: 4))
     }
     
     private func categoryListView() -> some View {
@@ -142,8 +146,8 @@ struct TodoView: View {
         .zIndex(2)
     }
     
-    private func categoryItemView(item: Category, index: Int) -> some View {
-        return HoverableButton(isPriority: viewModel.viewState == .category, action: {
+    private func categoryItemView(item: Category, index: Int, currentState: TodoViewState = .category) -> some View {
+        return HoverableButton(isPriority: viewModel.viewState == currentState, action: {
             viewModel.selectItem(item)
         }) {
             HStack {
@@ -153,12 +157,15 @@ struct TodoView: View {
                 Text(item.name)
                 Spacer()
             }
+            .padding(8)
+            .contentShape(Rectangle())
         }
         .onHover { hovering in
             viewModel.onCategoryItemHover(hovering: hovering, index: index)
         }
         .id(index)
-        .background(viewModel.isItemViewHovered(index: index, currentState: .category) ? Color.blue.opacity(0.2) : Color.clear)
+        .background(viewModel.isItemViewHovered(index: index, currentState: currentState) ? Color.blue.opacity(0.2) : Color.clear)
+        .clipShape(.rect(cornerRadius: 4))
     }
     
     private func suggestedTodoListView() -> some View {
@@ -173,7 +180,7 @@ struct TodoView: View {
                 if viewModel.isTaggedInput {
                     List {
                         ForEach(Array(viewModel.filteredCategories.enumerated()), id: \.element.id) { index, item in
-                            categoryItemView(item: item, index: index)
+                            categoryItemView(item: item, index: index, currentState: .todoInput)
                         }
                     }
                     .frame(height: viewModel.filteredCategories.isEmpty ? 0 : 200)
@@ -184,7 +191,7 @@ struct TodoView: View {
                         viewModel.handleKeyPress(keyPress)
                     }
                     .onChange(of: viewModel.scrollTarget) {
-                        viewModel.scrollToTarget(proxy: proxy, currentViewState: .category)
+                        viewModel.scrollToTarget(proxy: proxy, currentViewState: .todoInput)
                     }
                 } else {
                     List {
@@ -225,12 +232,16 @@ struct TodoView: View {
                     .font(.caption)
                     .foregroundColor(Color(hex: item.category.color))
             }
+            .padding(8)
+            .contentShape(Rectangle())
         }
         .onHover { hovering in
             viewModel.onSuggestedTodoItemHover(hovering: hovering, index: index)
         }
         .id(index)
         .background(viewModel.isItemViewHovered(index: index, currentState: .todoInput) ? Color.blue.opacity(0.2) : Color.clear)
+        .clipShape(.rect(cornerRadius: 4))
+
     }
 }
 

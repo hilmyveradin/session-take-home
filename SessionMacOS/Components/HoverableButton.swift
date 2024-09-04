@@ -21,8 +21,6 @@ struct HoverableButton<Content: View>: View {
     var body: some View {
         Button(action: action) {
             content()
-                .padding(8)
-                .cornerRadius(5)
         }
         .buttonStyle(PlainButtonStyle())
         .allowsHitTesting(isPriority)
