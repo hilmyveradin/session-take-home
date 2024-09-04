@@ -35,7 +35,7 @@ class TodoViewModel: ObservableObject {
     }
     
     private func setupKeyEventHandler() {
-        keyEventHandler.onSelect = { [weak self] in self?.selectItem($0) }
+//        keyEventHandler.onSelect = { [weak self] in self?.selectItem($0) }
         keyEventHandler.onScroll = { [weak self] index in
             self?.scrollTarget = index
         }
@@ -65,6 +65,7 @@ class TodoViewModel: ObservableObject {
             isTagIntention = false
             filterFocusItems(newValue)
         }
+        
         updateKeyEventHandlerItems()
     }
     

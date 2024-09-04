@@ -11,7 +11,7 @@ import SwiftUI
 struct SessionMacOSApp: App {
     var body: some Scene {
         WindowGroup {
-            TodoView()
+            NewTodo()
                 .preferredColorScheme(.light)
         }
     }

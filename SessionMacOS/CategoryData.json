@@ -1,0 +1,28 @@
+{
+  "categories": [
+    {
+      "name": "design",
+      "color": "#FF5733"
+    },
+    {
+      "name": "programming",
+      "color": "#33FF57"
+    },
+    {
+      "name": "marketing",
+      "color": "#3357FF"
+    },
+    {
+      "name": "finance",
+      "color": "#FF33F1"
+    },
+    {
+      "name": "support",
+      "color": "#33FFF1"
+    },
+    {
+      "name": "sleep",
+      "color": "#8033FF"
+    }
+  ]
+}

@@ -11,8 +11,8 @@ import AppKit
 class KeyEventHandler: ObservableObject {
     @Published var selectedIndex: Int = -1
     
-    var items: [String] = []
-    var onSelect: ((String) -> Void)?
+    var items: [Any] = []
+    var onSelect: ((Any) -> Void)?
     var onScroll: ((Int) -> Void)?
     
     private var monitor: Any?
@@ -31,7 +31,7 @@ class KeyEventHandler: ObservableObject {
         }
     }
     
-    func updateItems(_ newItems: [String]) {
+    func updateItems(_ newItems: [Any]) {
         items = newItems
         selectedIndex = -1
     }

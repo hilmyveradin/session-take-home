@@ -1,0 +1,214 @@
+{
+  "todos": [
+    {
+      "name": "Graphic Design",
+      "category": {
+        "name": "design",
+        "color": "#FF5733"
+      }
+    },
+    {
+      "name": "UI/UX Design",
+      "category": {
+        "name": "design",
+        "color": "#FF5733"
+      }
+    },
+    {
+      "name": "Web Design",
+      "category": {
+        "name": "design",
+        "color": "#FF5733"
+      }
+    },
+    {
+      "name": "Product Design",
+      "category": {
+        "name": "design",
+        "color": "#FF5733"
+      }
+    },
+    {
+      "name": "Brand Identity",
+      "category": {
+        "name": "design",
+        "color": "#FF5733"
+      }
+    },
+    {
+      "name": "Web Development",
+      "category": {
+        "name": "programming",
+        "color": "#33FF57"
+      }
+    },
+    {
+      "name": "Mobile App Development",
+      "category": {
+        "name": "programming",
+        "color": "#33FF57"
+      }
+    },
+    {
+      "name": "Data Structures",
+      "category": {
+        "name": "programming",
+        "color": "#33FF57"
+      }
+    },
+    {
+      "name": "Algorithms",
+      "category": {
+        "name": "programming",
+        "color": "#33FF57"
+      }
+    },
+    {
+      "name": "Database Management",
+      "category": {
+        "name": "programming",
+        "color": "#33FF57"
+      }
+    },
+    {
+      "name": "Digital Marketing",
+      "category": {
+        "name": "marketing",
+        "color": "#3357FF"
+      }
+    },
+    {
+      "name": "Content Marketing",
+      "category": {
+        "name": "marketing",
+        "color": "#3357FF"
+      }
+    },
+    {
+      "name": "Social Media Marketing",
+      "category": {
+        "name": "marketing",
+        "color": "#3357FF"
+      }
+    },
+    {
+      "name": "SEO",
+      "category": {
+        "name": "marketing",
+        "color": "#3357FF"
+      }
+    },
+    {
+      "name": "Email Marketing",
+      "category": {
+        "name": "marketing",
+        "color": "#3357FF"
+      }
+    },
+    {
+      "name": "Accounting",
+      "category": {
+        "name": "finance",
+        "color": "#FF33F1"
+      }
+    },
+    {
+      "name": "Investment",
+      "category": {
+        "name": "finance",
+        "color": "#FF33F1"
+      }
+    },
+    {
+      "name": "Budgeting",
+      "category": {
+        "name": "finance",
+        "color": "#FF33F1"
+      }
+    },
+    {
+      "name": "Financial Analysis",
+      "category": {
+        "name": "finance",
+        "color": "#FF33F1"
+      }
+    },
+    {
+      "name": "Tax Planning",
+      "category": {
+        "name": "finance",
+        "color": "#FF33F1"
+      }
+    },
+    {
+      "name": "Technical Support",
+      "category": {
+        "name": "support",
+        "color": "#33FFF1"
+      }
+    },
+    {
+      "name": "Customer Service",
+      "category": {
+        "name": "support",
+        "color": "#33FFF1"
+      }
+    },
+    {
+      "name": "Troubleshooting",
+      "category": {
+        "name": "support",
+        "color": "#33FFF1"
+      }
+    },
+    {
+      "name": "Product Knowledge",
+      "category": {
+        "name": "support",
+        "color": "#33FFF1"
+      }
+    },
+    {
+      "name": "Complaint Handling",
+      "category": {
+        "name": "support",
+        "color": "#33FFF1"
+      }
+    },
+    {
+      "name": "Sleep Cycles",
+      "category": {
+        "name": "sleep",
+        "color": "#8033FF"
+      }
+    },
+    {
+      "name": "Insomnia Management",
+      "category": {
+        "name": "sleep",
+        "color": "#8033FF"
+      }
+    },
+    {
+      "name": "Sleep Environment",
+      "category": {
+        "name": "sleep",
+        "color": "#8033FF"
+      }
+    },
+    {
+      "name": "Relaxation Techniques",
+      "category": {
+        "name": "sleep",
+        "color": "#8033FF"
+      }
+    },
+    {
+      "name": "Sleep Disorders",
+      "category": {
+        "name": "sleep",
+        "color": "#8033FF"
+      }
+    }
+  ]
+}
