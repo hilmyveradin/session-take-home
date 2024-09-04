@@ -141,7 +141,15 @@ final class TodoViewModel: ObservableObject {
         }
     }
     
-    func selectItem(_ item: Any? = nil, action: (() -> Void)? = nil) {
+    func submitTodoTextfield(action: (() -> Void)? = nil) {
+        guard let selectedCategory else { return }
+        let todo = Todo(name: todoInputText, category: selectedCategory)
+        selectItem(todo) {
+            action?()
+        }
+    }
+    
+    func selectItem(_ item: Any, action: (() -> Void)? = nil) {
         switch viewState {
         case .category:
             guard let selectedCategoryItem = item as? Category else {return}
@@ -156,7 +164,11 @@ final class TodoViewModel: ObservableObject {
                 filteredCategories = categories
                 removeTagFromFocusText()
             } else {
-                updateTodoList()
+                guard let newTodo = item as? Todo else { return }
+                todos.insert(newTodo, at: 0)
+                filteredSuggestedTodos = Array(todos.prefix(5))
+                
+                DataManager.shared.saveTodos(todos)
                 viewState = .todoList
             }
             
@@ -166,16 +178,6 @@ final class TodoViewModel: ObservableObject {
         
         updateKeyEventHandlerItems()
         action?()
-    }
-    
-    private func updateTodoList() {
-        guard let selectedCategory else { return }
-        let newTodo = Todo(name: todoInputText, category: selectedCategory)
-        
-        todos.insert(newTodo, at: 0)
-        filteredSuggestedTodos = Array(todos.prefix(5))
-        
-        DataManager.shared.saveTodos(todos)
     }
     
     private func removeTagFromFocusText() {

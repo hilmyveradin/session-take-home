@@ -32,6 +32,9 @@ struct TodoView: View {
             viewModel.keyEventHandler.stopMonitoring()
         }
         .onChange(of: viewModel.viewState) { _ in
+            if viewModel.viewState != .todoInput {
+                searchFocus = false
+            }
             viewModel.updateKeyEventHandlerItems()
         }
         .onChange(of: viewModel.isTaggedInput) { _ in
@@ -60,7 +63,7 @@ struct TodoView: View {
             .onChange(of: viewModel.todoInputText) { viewModel.handleTextFieldChange($0) }
             .onChange(of: searchFocus) { if $0 { viewModel.viewState = .todoInput }}
             .onSubmit {
-                viewModel.selectItem() {
+                viewModel.submitTodoTextfield {
                     searchFocus = false
                 }
             }
