@@ -1,5 +1,5 @@
 //
-//  NewTodo.swift
+//  TodoView.swift
 //  SessionMacOS
 //
 //  Created by Hilmy Veradin on 04/09/24.
@@ -10,6 +10,13 @@ import SwiftUI
 struct TodoView: View {
     @StateObject private var viewModel = TodoViewModel()
     @FocusState private var viewFocus: TodoViewState?
+    
+    private var viewFocusBinding: Binding<TodoViewState?> {
+        Binding(
+            get: { self.viewFocus },
+            set: { self.viewFocus = $0 }
+        )
+    }
     
     var body: some View {
         ZStack {
@@ -26,15 +33,13 @@ struct TodoView: View {
             }
         }
         .onAppear {
-            viewFocus = viewModel.viewState
+            viewModel.onAppear(viewFocus: viewFocusBinding)
         }
         .onChange(of: viewFocus) {
-            viewModel.viewState = viewFocus ?? .todoList
-            viewModel.selectedItemIndex = -1
+            viewModel.onFocusChange(newValue: viewFocus)
         }
         .onChange(of: viewModel.viewState) {
-            viewFocus = viewModel.viewState
-            viewModel.selectedItemIndex = -1
+            viewModel.onViewStateChange(newValue: viewModel.viewState, viewFocus: viewFocusBinding)
         }
         .alert(isPresented: viewModel.isShowTodoAlertBinding) {
             Alert(title: Text(viewModel.todoAlertMessage))
@@ -43,13 +48,13 @@ struct TodoView: View {
     
     private var categoryHeader: some View {
         HStack {
-            Text(viewModel.selectedCategory?.name ?? "No Category Found")
+            Text(viewModel.selectedCategoryName)
             Spacer()
             Image(systemName: "chevron.down")
         }
         .padding()
         .background(.background)
-        .onTapGesture { viewModel.viewState = .category }
+        .onTapGesture { viewModel.onCategoryHeaderTap() }
         .frame(height: 50)
     }
     
@@ -79,14 +84,12 @@ struct TodoView: View {
                 viewModel.handleKeyPress(keyPress)
             }
             .onChange(of: viewModel.scrollTarget) {
-                scrollToTarget(proxy: proxy, target: viewModel.scrollTarget, currentViewState: .todoList)
+                viewModel.scrollToTarget(proxy: proxy, currentViewState: .todoList)
             }
         }
     }
     
     private func todoItemView(item: Todo, index: Int) -> some View {
-        let isSelected = index == viewModel.selectedItemIndex
-        let isHovered = isSelected && viewModel.viewState == .todoList
         
         return HoverableButton(isPriority: viewModel.viewState == .todoList, action: {
             viewModel.selectItem(item)
@@ -101,12 +104,10 @@ struct TodoView: View {
             }
         }
         .onHover { hovering in
-            if viewModel.viewState == .todoList {
-                viewModel.selectedItemIndex = hovering ? index : -1
-            }
+            viewModel.onTodoItemHover(hovering: hovering, index: index)
         }
         .id(index)
-        .background(isHovered ? Color.blue.opacity(0.2) : Color.clear)
+        .background(viewModel.isItemViewHovered(index: index, currentState: .todoList) ? Color.blue.opacity(0.2) : Color.clear)
     }
     
     private func categoryListView() -> some View {
@@ -114,7 +115,7 @@ struct TodoView: View {
             Color.black.opacity(0.01)
                 .frame(height: 50)
                 .onTapGesture {
-                    viewModel.viewState = .todoList
+                    viewModel.onCategoryListBackgroundTap()
                 }
             
             ScrollViewReader { proxy in
@@ -131,20 +132,17 @@ struct TodoView: View {
                     viewModel.handleKeyPress(keyPress)
                 }
                 .onChange(of: viewModel.scrollTarget) {
-                    scrollToTarget(proxy: proxy, target: viewModel.scrollTarget, currentViewState: .category)
+                    viewModel.scrollToTarget(proxy: proxy, currentViewState: .category)
                 }
             }
             
             Color.black.opacity(0.01)
-                .onTapGesture { viewModel.viewState = .todoList }
+                .onTapGesture { viewModel.onCategoryListBackgroundTap() }
         }
         .zIndex(2)
     }
     
     private func categoryItemView(item: Category, index: Int) -> some View {
-        let isSelected = index == viewModel.selectedItemIndex
-        let isHovered = (isSelected && viewModel.viewState == .category) || (isSelected && viewModel.isTaggedInput)
-        
         return HoverableButton(isPriority: viewModel.viewState == .category, action: {
             viewModel.selectItem(item)
         }) {
@@ -157,12 +155,10 @@ struct TodoView: View {
             }
         }
         .onHover { hovering in
-            if viewModel.viewState == .category {
-                viewModel.selectedItemIndex = hovering ? index : -1
-            }
+            viewModel.onCategoryItemHover(hovering: hovering, index: index)
         }
         .id(index)
-        .background(isHovered ? Color.blue.opacity(0.2) : Color.clear)
+        .background(viewModel.isItemViewHovered(index: index, currentState: .category) ? Color.blue.opacity(0.2) : Color.clear)
     }
     
     private func suggestedTodoListView() -> some View {
@@ -170,7 +166,7 @@ struct TodoView: View {
             Color.black.opacity(0.01)
                 .frame(height: 110)
                 .onTapGesture {
-                    viewModel.viewState = .todoList
+                    viewModel.onSuggestedListBackgroundTap()
                 }
             
             ScrollViewReader { proxy in
@@ -188,7 +184,7 @@ struct TodoView: View {
                         viewModel.handleKeyPress(keyPress)
                     }
                     .onChange(of: viewModel.scrollTarget) {
-                        scrollToTarget(proxy: proxy, target: viewModel.scrollTarget, currentViewState: .category)
+                        viewModel.scrollToTarget(proxy: proxy, currentViewState: .category)
                     }
                 } else {
                     List {
@@ -204,13 +200,13 @@ struct TodoView: View {
                         viewModel.handleKeyPress(keyPress)
                     }
                     .onChange(of: viewModel.scrollTarget) {
-                        scrollToTarget(proxy: proxy, target: viewModel.scrollTarget, currentViewState: .todoInput)
+                        viewModel.scrollToTarget(proxy: proxy, currentViewState: .todoInput)
                     }
                 }
                 
                 Color.black.opacity(0.001)
                     .onTapGesture {
-                        viewModel.viewState = .todoList
+                        viewModel.onSuggestedListBackgroundTap()
                     }
             }
         }
@@ -218,8 +214,6 @@ struct TodoView: View {
     }
     
     private func suggestedTodoItemView(item: Todo, index: Int) -> some View {
-        let isSelected = index == viewModel.selectedItemIndex
-        let isHovered = isSelected && viewModel.viewState == .todoInput
         
         return HoverableButton(isPriority: viewModel.viewState == .todoInput, action: {
             viewModel.selectItem(item)
@@ -233,20 +227,10 @@ struct TodoView: View {
             }
         }
         .onHover { hovering in
-            if viewModel.viewState == .todoInput {
-                viewModel.selectedItemIndex = hovering ? index : -1
-            }
+            viewModel.onSuggestedTodoItemHover(hovering: hovering, index: index)
         }
         .id(index)
-        .background(isHovered ? Color.blue.opacity(0.2) : Color.clear)
-    }
-    
-    private func scrollToTarget(proxy: ScrollViewProxy, target: Int?, currentViewState: TodoViewState) {
-        if let target, currentViewState == viewModel.viewState {
-            withAnimation {
-                proxy.scrollTo(target, anchor: .center)
-            }
-        }
+        .background(viewModel.isItemViewHovered(index: index, currentState: .todoInput) ? Color.blue.opacity(0.2) : Color.clear)
     }
 }
 

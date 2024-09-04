@@ -1,5 +1,13 @@
+//
+//  TodoViewModel.swift
+//  SessionMacOS
+//
+//  Created by Hilmy Veradin on 04/09/24.
+//
+
 import Foundation
 import SwiftUI
+import AppKit
 
 enum TodoViewState {
     case category
@@ -30,6 +38,10 @@ final class TodoViewModel: ObservableObject {
     
     @Published var todoAlertMessage = ""
     
+    var selectedCategoryName: String {
+        selectedCategory?.name ?? "No Category Found"
+    }
+    
     // View Bindings
     var isShowTodoAlertBinding: Binding<Bool> {
         Binding(
@@ -54,7 +66,80 @@ final class TodoViewModel: ObservableObject {
     
     func resetStates() {
         selectedItemIndex = -1
-        
+    }
+    
+    func isItemViewHovered(index: Int, currentState: TodoViewState) -> Bool {
+        switch currentState {
+        case .category:
+            let isSelected = index == selectedItemIndex
+            let isHovered = isSelected && viewState == .category
+            return isHovered
+        case .todoInput:
+            let isSelected = index == selectedItemIndex
+            let isHovered = isSelected && viewState == .todoInput
+            return isHovered
+        case .todoList:
+            let isSelected = index == selectedItemIndex
+            let isHovered = isSelected &&  viewState == .todoList
+            return isHovered
+        }
+
+    }
+    
+    func onAppear(viewFocus: Binding<TodoViewState?>) {
+        viewFocus.wrappedValue = viewState
+    }
+    
+    func onFocusChange(newValue: TodoViewState?) {
+        viewState = newValue ?? .todoList
+        selectedItemIndex = -1
+    }
+    
+    func onViewStateChange(newValue: TodoViewState, viewFocus: Binding<TodoViewState?>) {
+        viewFocus.wrappedValue = newValue
+        selectedItemIndex = -1
+    }
+    
+    func onCategoryHeaderTap() {
+        viewState = .category
+    }
+    
+    func onTodoItemHover(hovering: Bool, index: Int) {
+        if viewState == .todoList && CursorManager.shared.isCursorShown {
+            selectedItemIndex = hovering ? index : -1
+        }
+    }
+    
+    func onCategoryListBackgroundTap() {
+        viewState = .todoList
+    }
+    
+    func isCategoryItemHovered(isSelected: Bool) -> Bool {
+        return (isSelected && viewState == .category) || (isSelected && isTaggedInput)
+    }
+    
+    func onCategoryItemHover(hovering: Bool, index: Int) {
+        if viewState == .category && CursorManager.shared.isCursorShown {
+            selectedItemIndex = hovering ? index : -1
+        }
+    }
+    
+    func onSuggestedListBackgroundTap() {
+        viewState = .todoList
+    }
+    
+    func onSuggestedTodoItemHover(hovering: Bool, index: Int) {
+        if viewState == .todoInput && CursorManager.shared.isCursorShown {
+            selectedItemIndex = hovering ? index : -1
+        }
+    }
+    
+    func scrollToTarget(proxy: ScrollViewProxy, currentViewState: TodoViewState) {
+        if let target = scrollTarget, currentViewState == viewState {
+            withAnimation {
+                proxy.scrollTo(target, anchor: .center)
+            }
+        }
     }
     
     func handleTextFieldChange(_ newValue: String) {
@@ -119,6 +204,7 @@ final class TodoViewModel: ObservableObject {
         }
 
     }
+    
     private func deferredMoveSelection(direction: MoveDirection) {
         Task { @MainActor in
             switch direction {
@@ -127,6 +213,8 @@ final class TodoViewModel: ObservableObject {
             case .down:
                 selectedItemIndex = min(selectedItemIndex + 1, currentItems.count - 1)
             }
+            
+            CursorManager.shared.hideCursor()
             scrollTarget = selectedItemIndex
         }
     }
