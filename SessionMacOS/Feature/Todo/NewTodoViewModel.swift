@@ -58,35 +58,63 @@ final class NewTodoViewModel: ObservableObject {
     
     func handleTextFieldChange(_ newValue: String) {
         /*
-         1. Check if the last value consists of @
-         2. Check if the value contains @. This to ensure the behaviour of @ exists but not in the last element
-         3. If the @ doesn't exists, do as regular
+         1. Check if the string starts with @
+         2. Check if the last character is @
+         3. Check if @ exists somewhere in the middle
+         4. If no @ exists, handle as regular input
          */
-        if newValue.last == "@" {
-            isTaggedInput = true
-            filteredCategories = categories
-        } else if newValue.contains("@") {
+        
+        if newValue.hasPrefix("@") {
             /*
-             1. Separate component based on the @ syntax. he result should be two different sets of strings
-             2. If the count is not a pair of string subsequesce, return it
-             3. Check if the afterAt contains empty space, if there's an empty space then make the add act like a default string input. If not then continue to filter the categories
+             1. Remove the @ from the beginning
+             2. Check if there's a space after @
+             3. If space exists, reset to normal input mode
+             4. If no space, filter categories based on text after @
              */
-            let components = newValue.split(separator: "@")
-            guard components.count == 2 else { return }
-            let afterAt = String(components[1])
-            
+            let afterAt = String(newValue.dropFirst())
             if afterAt.contains(" ") {
-                // Reset input and filtered suggested todos
+                // Reset if there's a space after @
                 isTaggedInput = false
-                filteredSuggestedTodos = Array(todos.prefix(5))
+                filterSuggestionTodos(newValue)
             } else {
                 isTaggedInput = true
                 filterCategories(afterAt)
             }
-            
+        } else if newValue.last == "@" {
+            // If @ is the last character, enter tagged input mode
+            isTaggedInput = true
+            filteredCategories = categories
+        } else if newValue.contains("@") {
+            /*
+             1. Split the string based on @, allowing only one split
+             2. If split results in two components, process the part after @
+             3. If there's a space after @, reset to normal input mode
+             4. If no space after @, filter categories
+             5. If split doesn't result in two components (e.g., multiple @), reset to normal input mode
+             */
+            let components = newValue.split(separator: "@", maxSplits: 1)
+            if components.count == 2 {
+                let afterAt = String(components[1])
+                if afterAt.contains(" ") {
+                    // Reset input and filtered suggested todos
+                    isTaggedInput = false
+                    filterSuggestionTodos(newValue)
+                } else {
+                    isTaggedInput = true
+                    filterCategories(afterAt)
+                }
+            } else {
+                // Handle case like "a@abade" or multiple @
+                isTaggedInput = false
+                filterSuggestionTodos(newValue)
+            }
         } else {
-            
+            // No @ in the input, handle as regular input
+            isTaggedInput = false
+            filterSuggestionTodos(newValue)
         }
+        
+        updateKeyEventHandlerItems()
     }
     
     private func filterCategories(_ filter: String) {
@@ -96,7 +124,7 @@ final class NewTodoViewModel: ObservableObject {
     }
 
     private func filterSuggestionTodos(_ filter: String) {
-        filteredSuggestedTodos = todos.filter { todo in
+        filteredSuggestedTodos = Array(todos.prefix(5)).filter { todo in
             todo.name.lowercased().starts(with: filter.lowercased())
         }
     }
@@ -113,7 +141,7 @@ final class NewTodoViewModel: ObservableObject {
         }
     }
     
-    func selectItem(_ item: Any, action: (() -> Void)? = nil) {
+    func selectItem(_ item: Any? = nil, action: (() -> Void)? = nil) {
         switch viewState {
         case .category:
             guard let selectedCategoryItem = item as? Category else {return}
@@ -125,8 +153,8 @@ final class NewTodoViewModel: ObservableObject {
             if isTaggedInput {
                 guard let selectedCategoryItem = item as? Category else {return}
                 selectedCategory = selectedCategoryItem
+                filteredCategories = categories
                 removeTagFromFocusText()
-                
             } else {
                 updateTodoList()
                 viewState = .todoList
@@ -136,6 +164,7 @@ final class NewTodoViewModel: ObservableObject {
             print("todo button clicked")
         }
         
+        updateKeyEventHandlerItems()
         action?()
     }
     
@@ -146,7 +175,7 @@ final class NewTodoViewModel: ObservableObject {
         todos.insert(newTodo, at: 0)
         filteredSuggestedTodos = Array(todos.prefix(5))
         
-        DataManager.shared.updateTodo(newTodo)
+        DataManager.shared.saveTodos(todos)
     }
     
     private func removeTagFromFocusText() {

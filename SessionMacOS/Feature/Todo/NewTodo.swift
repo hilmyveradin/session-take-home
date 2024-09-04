@@ -61,10 +61,9 @@ struct NewTodo: View {
             .onChange(of: viewModel.todoInputText) { viewModel.handleTextFieldChange($0) }
             .onChange(of: searchFocus) { if $0 { viewModel.viewState = .todoInput }}
             .onSubmit {
-                viewModel.selectItem(viewModel.todoInputText) {
+                viewModel.selectItem() {
                     searchFocus = false
                 }
-                
             }
     }
     
@@ -76,7 +75,7 @@ struct NewTodo: View {
                 }
             }
             .onChange(of: viewModel.scrollTarget) { target in
-                scrollToTarget(proxy: proxy, target: target)
+                scrollToTarget(proxy: proxy, target: target, currentViewState: .todoList)
             }
         }
     }
@@ -118,11 +117,13 @@ struct NewTodo: View {
                         categoryItemView(item: item, index: index)
                     }
                 }
-                .frame(maxHeight: 200)
+                .frame(height: viewModel.filteredCategories.isEmpty ? 0 : 200)
                 .listStyle(.plain)
+                .shadow(color: Color.gray, radius: 5, x: 5, y: 15)
                 .onChange(of: viewModel.scrollTarget) { target in
-                    scrollToTarget(proxy: proxy, target: target)
+                    scrollToTarget(proxy: proxy, target: target, currentViewState: .category)
                 }
+                
             }
             
             Color.black.opacity(0.01)
@@ -172,21 +173,24 @@ struct NewTodo: View {
                             categoryItemView(item: item, index: index)
                         }
                     }
-                    .frame(maxHeight: 200)
+                    .frame(height: viewModel.filteredCategories.isEmpty ? 0 : 200)
                     .listStyle(.plain)
+                    .shadow(color: Color.gray, radius: 5, x: 5, y: 15)
                     .onChange(of: viewModel.scrollTarget) { target in
-                        scrollToTarget(proxy: proxy, target: target)
+                        scrollToTarget(proxy: proxy, target: target, currentViewState: .category)
                     }
+                    
                 } else {
                     List {
                         ForEach(Array(viewModel.filteredSuggestedTodos.enumerated()), id: \.element.id) { index, item in
                             suggestedTodoItemView(item: item, index: index)
                         }
                     }
-                    .frame(maxHeight: 200)
+                    .frame(height: viewModel.filteredSuggestedTodos.isEmpty ? 0 : 200)
                     .listStyle(.plain)
+                    .shadow(color: Color.gray, radius: 5, x: 5, y: 15)
                     .onChange(of: viewModel.scrollTarget) { target in
-                        scrollToTarget(proxy: proxy, target: target)
+                        scrollToTarget(proxy: proxy, target: target, currentViewState: .todoInput)
                     }
                 }
                 
@@ -226,8 +230,8 @@ struct NewTodo: View {
     }
     
     
-    private func scrollToTarget(proxy: ScrollViewProxy, target: Int?) {
-        if let target = target {
+    private func scrollToTarget(proxy: ScrollViewProxy, target: Int?, currentViewState: NewTodoViewState) {
+        if let target, currentViewState == viewModel.viewState {
             withAnimation {
                 proxy.scrollTo(target, anchor: .center)
             }
