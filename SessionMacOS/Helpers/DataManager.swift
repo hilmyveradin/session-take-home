@@ -76,32 +76,5 @@ class DataManager {
         }
         return categoryData.categories
     }
-    
-    // MARK: - CRUD Operations for Todos
-    
-    func addTodo(_ todo: Todo) {
-        var todos = loadTodos()
-        todos.append(todo)
-        saveTodos(todos)
-    }
-    
-    func updateTodo(_ updatedTodo: Todo) {
-        var todos = loadTodos()
-        if let index = todos.firstIndex(where: { $0.id == updatedTodo.id }) {
-            todos[index] = updatedTodo
-            saveTodos(todos)
-        }
-    }
-    
-    func deleteTodo(_ todoId: UUID) {
-        var todos = loadTodos()
-        todos.removeAll { $0.id == todoId }
-        saveTodos(todos)
-    }
-    
-    func getTodo(by id: UUID) -> Todo? {
-        let todos = loadTodos()
-        return todos.first { $0.id == id }
-    }
 }
 
