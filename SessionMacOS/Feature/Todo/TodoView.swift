@@ -9,7 +9,7 @@ import SwiftUI
 
 struct TodoView: View {
     @StateObject private var viewModel = TodoViewModel()
-    @FocusState private var searchFocus: Bool
+    @FocusState private var viewFocus: TodoViewState?
     
     var body: some View {
         ZStack {
@@ -26,19 +26,18 @@ struct TodoView: View {
             }
         }
         .onAppear {
-            viewModel.keyEventHandler.startMonitoring()
+            viewFocus = viewModel.viewState
         }
-        .onDisappear {
-            viewModel.keyEventHandler.stopMonitoring()
+        .onChange(of: viewFocus) {
+            viewModel.viewState = viewFocus ?? .todoList
+            viewModel.selectedItemIndex = -1
         }
-        .onChange(of: viewModel.viewState) { _ in
-            if viewModel.viewState != .todoInput {
-                searchFocus = false
-            }
-            viewModel.updateKeyEventHandlerItems()
+        .onChange(of: viewModel.viewState) {
+            viewFocus = viewModel.viewState
+            viewModel.selectedItemIndex = -1
         }
-        .onChange(of: viewModel.isTaggedInput) { _ in
-            viewModel.updateKeyEventHandlerItems()
+        .alert(isPresented: viewModel.isShowTodoAlertBinding) {
+            Alert(title: Text(viewModel.todoAlertMessage))
         }
     }
     
@@ -59,13 +58,12 @@ struct TodoView: View {
             .padding()
             .background(.background)
             .frame(height: 50)
-            .focused($searchFocus)
-            .onChange(of: viewModel.todoInputText) { viewModel.handleTextFieldChange($0) }
-            .onChange(of: searchFocus) { if $0 { viewModel.viewState = .todoInput }}
-            .onSubmit {
-                viewModel.submitTodoTextfield {
-                    searchFocus = false
-                }
+            .focused($viewFocus, equals: .todoInput)
+            .onKeyPress(keys: [.upArrow, .downArrow, .return]) { keyPress in
+                viewModel.handleKeyPress(keyPress)
+            }
+            .onChange(of: viewModel.todoInputText) {
+                viewModel.handleTextFieldChange(viewModel.todoInputText)
             }
     }
     
@@ -76,14 +74,18 @@ struct TodoView: View {
                     todoItemView(item: item, index: index)
                 }
             }
-            .onChange(of: viewModel.scrollTarget) { target in
-                scrollToTarget(proxy: proxy, target: target, currentViewState: .todoList)
+            .focused($viewFocus, equals: .todoList)
+            .onKeyPress(keys: [.upArrow, .downArrow, .return]) { keyPress in
+                viewModel.handleKeyPress(keyPress)
+            }
+            .onChange(of: viewModel.scrollTarget) {
+                scrollToTarget(proxy: proxy, target: viewModel.scrollTarget, currentViewState: .todoList)
             }
         }
     }
     
     private func todoItemView(item: Todo, index: Int) -> some View {
-        let isSelected = index == viewModel.keyEventHandler.selectedIndex
+        let isSelected = index == viewModel.selectedItemIndex
         let isHovered = isSelected && viewModel.viewState == .todoList
         
         return HoverableButton(isPriority: viewModel.viewState == .todoList, action: {
@@ -93,14 +95,14 @@ struct TodoView: View {
                 Image(systemName: "square")
                 Text(item.name)
                 Spacer()
-                Text(item.category.name )
+                Text(item.category.name)
                     .font(.caption)
-                    .foregroundColor(Color(hex: item.category.color ))
+                    .foregroundColor(Color(hex: item.category.color))
             }
         }
         .onHover { hovering in
             if viewModel.viewState == .todoList {
-                viewModel.keyEventHandler.selectedIndex = hovering ? index : -1
+                viewModel.selectedItemIndex = hovering ? index : -1
             }
         }
         .id(index)
@@ -111,7 +113,9 @@ struct TodoView: View {
         VStack {
             Color.black.opacity(0.01)
                 .frame(height: 50)
-                .onTapGesture { viewModel.viewState = .todoList }
+                .onTapGesture {
+                    viewModel.viewState = .todoList
+                }
             
             ScrollViewReader { proxy in
                 List {
@@ -122,10 +126,13 @@ struct TodoView: View {
                 .frame(height: viewModel.filteredCategories.isEmpty ? 0 : 200)
                 .listStyle(.plain)
                 .shadow(color: Color.gray, radius: 5, x: 5, y: 15)
-                .onChange(of: viewModel.scrollTarget) { target in
-                    scrollToTarget(proxy: proxy, target: target, currentViewState: .category)
+                .focused($viewFocus, equals: .category)
+                .onKeyPress(keys: [.upArrow, .downArrow, .return]) { keyPress in
+                    viewModel.handleKeyPress(keyPress)
                 }
-                
+                .onChange(of: viewModel.scrollTarget) {
+                    scrollToTarget(proxy: proxy, target: viewModel.scrollTarget, currentViewState: .category)
+                }
             }
             
             Color.black.opacity(0.01)
@@ -135,7 +142,7 @@ struct TodoView: View {
     }
     
     private func categoryItemView(item: Category, index: Int) -> some View {
-        let isSelected = index == viewModel.keyEventHandler.selectedIndex
+        let isSelected = index == viewModel.selectedItemIndex
         let isHovered = (isSelected && viewModel.viewState == .category) || (isSelected && viewModel.isTaggedInput)
         
         return HoverableButton(isPriority: viewModel.viewState == .category, action: {
@@ -151,7 +158,7 @@ struct TodoView: View {
         }
         .onHover { hovering in
             if viewModel.viewState == .category {
-                viewModel.keyEventHandler.selectedIndex = hovering ? index : -1
+                viewModel.selectedItemIndex = hovering ? index : -1
             }
         }
         .id(index)
@@ -164,11 +171,9 @@ struct TodoView: View {
                 .frame(height: 110)
                 .onTapGesture {
                     viewModel.viewState = .todoList
-                    searchFocus = false
                 }
             
             ScrollViewReader { proxy in
-                // If tagged input then make the list as categories. If not, use suggestedTodoItemView
                 if viewModel.isTaggedInput {
                     List {
                         ForEach(Array(viewModel.filteredCategories.enumerated()), id: \.element.id) { index, item in
@@ -178,10 +183,13 @@ struct TodoView: View {
                     .frame(height: viewModel.filteredCategories.isEmpty ? 0 : 200)
                     .listStyle(.plain)
                     .shadow(color: Color.gray, radius: 5, x: 5, y: 15)
-                    .onChange(of: viewModel.scrollTarget) { target in
-                        scrollToTarget(proxy: proxy, target: target, currentViewState: .category)
+                    .focused($viewFocus, equals: .todoInput)
+                    .onKeyPress(keys: [.upArrow, .downArrow, .return]) { keyPress in
+                        viewModel.handleKeyPress(keyPress)
                     }
-                    
+                    .onChange(of: viewModel.scrollTarget) {
+                        scrollToTarget(proxy: proxy, target: viewModel.scrollTarget, currentViewState: .category)
+                    }
                 } else {
                     List {
                         ForEach(Array(viewModel.filteredSuggestedTodos.enumerated()), id: \.element.id) { index, item in
@@ -191,24 +199,26 @@ struct TodoView: View {
                     .frame(height: viewModel.filteredSuggestedTodos.isEmpty ? 0 : 200)
                     .listStyle(.plain)
                     .shadow(color: Color.gray, radius: 5, x: 5, y: 15)
-                    .onChange(of: viewModel.scrollTarget) { target in
-                        scrollToTarget(proxy: proxy, target: target, currentViewState: .todoInput)
+                    .focused($viewFocus, equals: .todoInput)
+                    .onKeyPress(keys: [.upArrow, .downArrow, .return]) { keyPress in
+                        viewModel.handleKeyPress(keyPress)
+                    }
+                    .onChange(of: viewModel.scrollTarget) {
+                        scrollToTarget(proxy: proxy, target: viewModel.scrollTarget, currentViewState: .todoInput)
                     }
                 }
                 
                 Color.black.opacity(0.001)
                     .onTapGesture {
                         viewModel.viewState = .todoList
-                        searchFocus = false
                     }
             }
-
         }
         .zIndex(2)
     }
     
     private func suggestedTodoItemView(item: Todo, index: Int) -> some View {
-        let isSelected = index == viewModel.keyEventHandler.selectedIndex
+        let isSelected = index == viewModel.selectedItemIndex
         let isHovered = isSelected && viewModel.viewState == .todoInput
         
         return HoverableButton(isPriority: viewModel.viewState == .todoInput, action: {
@@ -217,20 +227,19 @@ struct TodoView: View {
             HStack {
                 Text(item.name)
                 Spacer()
-                Text(item.category.name )
+                Text(item.category.name)
                     .font(.caption)
-                    .foregroundColor(Color(hex: item.category.color ))
+                    .foregroundColor(Color(hex: item.category.color))
             }
         }
         .onHover { hovering in
             if viewModel.viewState == .todoInput {
-                viewModel.keyEventHandler.selectedIndex = hovering ? index : -1
+                viewModel.selectedItemIndex = hovering ? index : -1
             }
         }
         .id(index)
         .background(isHovered ? Color.blue.opacity(0.2) : Color.clear)
     }
-    
     
     private func scrollToTarget(proxy: ScrollViewProxy, target: Int?, currentViewState: TodoViewState) {
         if let target, currentViewState == viewModel.viewState {
@@ -239,7 +248,6 @@ struct TodoView: View {
             }
         }
     }
-    
 }
 
 #Preview {

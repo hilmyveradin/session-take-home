@@ -1,11 +1,5 @@
-//
-//  NewTodoViewModel.swift
-//  SessionMacOS
-//
-//  Created by Hilmy Veradin on 04/09/24.
-//
-
 import Foundation
+import SwiftUI
 
 enum TodoViewState {
     case category
@@ -13,109 +7,156 @@ enum TodoViewState {
     case todoList
 }
 
+enum TodoViewFocusState {
+    case categoryList
+    case todoSuggestedList
+    case todoInputList
+    case todoList
+}
+
+@MainActor
 final class TodoViewModel: ObservableObject {
+    
     @Published var todoInputText = ""
     @Published var viewState: TodoViewState = .todoList
     @Published var scrollTarget: Int?
     @Published var selectedCategory: Category?
-    
     @Published var isTaggedInput = false
-    
     @Published var filteredCategories: [Category] = []
     @Published var filteredSuggestedTodos: [Todo] = []
-    
     @Published var categories: [Category] = []
     @Published var todos: [Todo] = []
+    @Published var selectedItemIndex = -1
     
-    let keyEventHandler = KeyEventHandler()
+    @Published var todoAlertMessage = ""
+    
+    // View Bindings
+    var isShowTodoAlertBinding: Binding<Bool> {
+        Binding(
+            get: { self.isShowTodoAlert },
+            set: { newValue in self.isShowTodoAlert = newValue }
+        )
+    }
+    
+    private var isShowTodoAlert = false
+    
+    private var currentItems: [Any] {
+        getRelevantItems()
+    }
+    
+    private enum MoveDirection {
+        case up, down
+    }
     
     init() {
         loadData()
-        setupKeyEventHandler()
     }
     
-    func updateKeyEventHandlerItems() {
-        keyEventHandler.updateItems(getRelevantItems())
-    }
-    
-    private func loadData() {
-        categories = DataManager.shared.loadCategories()
-        todos = DataManager.shared.loadTodos()
+    func resetStates() {
+        selectedItemIndex = -1
         
-        selectedCategory = categories.first
-        
-        filteredCategories = categories
-        filteredSuggestedTodos = Array(todos.prefix(5)) // get first five todos as recommendation
-    }
-    
-    private func setupKeyEventHandler() {
-        keyEventHandler.onSelect = { [weak self] in self?.selectItem($0) }
-        keyEventHandler.onScroll = { [weak self] index in
-            self?.scrollTarget = index
-        }
-        keyEventHandler.updateItems(getRelevantItems())
     }
     
     func handleTextFieldChange(_ newValue: String) {
-        /*
-         1. Check if the string starts with @
-         2. Check if the last character is @
-         3. Check if @ exists somewhere in the middle
-         4. If no @ exists, handle as regular input
-         */
-        
         if newValue.hasPrefix("@") {
-            /*
-             1. Remove the @ from the beginning
-             2. Check if there's a space after @
-             3. If space exists, reset to normal input mode
-             4. If no space, filter categories based on text after @
-             */
             let afterAt = String(newValue.dropFirst())
             if afterAt.contains(" ") {
-                // Reset if there's a space after @
                 isTaggedInput = false
+                selectedItemIndex = -1
                 filterSuggestionTodos(newValue)
             } else {
                 isTaggedInput = true
+                selectedItemIndex = 0
                 filterCategories(afterAt)
             }
         } else if newValue.last == "@" {
-            // If @ is the last character, enter tagged input mode
             isTaggedInput = true
+            selectedItemIndex = 0
             filteredCategories = categories
         } else if newValue.contains("@") {
-            /*
-             1. Split the string based on @, allowing only one split
-             2. If split results in two components, process the part after @
-             3. If there's a space after @, reset to normal input mode
-             4. If no space after @, filter categories
-             5. If split doesn't result in two components (e.g., multiple @), reset to normal input mode
-             */
             let components = newValue.split(separator: "@", maxSplits: 1)
             if components.count == 2 {
                 let afterAt = String(components[1])
                 if afterAt.contains(" ") {
-                    // Reset input and filtered suggested todos
                     isTaggedInput = false
+                    selectedItemIndex = -1
                     filterSuggestionTodos(newValue)
                 } else {
                     isTaggedInput = true
+                    selectedItemIndex += 1
                     filterCategories(afterAt)
                 }
             } else {
-                // Handle case like "a@abade" or multiple @
                 isTaggedInput = false
+                selectedItemIndex = -1
                 filterSuggestionTodos(newValue)
             }
         } else {
-            // No @ in the input, handle as regular input
             isTaggedInput = false
             filterSuggestionTodos(newValue)
         }
-        
-        updateKeyEventHandlerItems()
     }
+    
+    func handleKeyPress(_ keyPress: KeyPress, isTextfieldState: Bool? = nil) -> KeyPress.Result {
+        switch keyPress.key {
+        case .upArrow:
+            deferredMoveSelection(direction: .up)
+            return .handled
+        case .downArrow:
+            deferredMoveSelection(direction: .down)
+            return .handled
+        case .return:
+            return deferredHandleReturnKey()
+        default:
+            return .ignored
+        }
+    }
+    
+    func resetTodoAlert() {
+        Task { @MainActor in
+            todoAlertMessage = ""
+            isShowTodoAlert = false
+        }
+
+    }
+    private func deferredMoveSelection(direction: MoveDirection) {
+        Task { @MainActor in
+            switch direction {
+            case .up:
+                selectedItemIndex = max(selectedItemIndex - 1, 0)
+            case .down:
+                selectedItemIndex = min(selectedItemIndex + 1, currentItems.count - 1)
+            }
+            scrollTarget = selectedItemIndex
+        }
+    }
+    
+    private func deferredHandleReturnKey() -> KeyPress.Result {
+        Task { @MainActor in
+            
+            if viewState == .todoInput && todoInputText != "" {
+                self.submitTodoTextfield()
+            }
+            
+            if selectedItemIndex >= 0 && selectedItemIndex < currentItems.count {
+                selectItem(currentItems[selectedItemIndex])
+            }
+            
+            selectedItemIndex = -1
+            scrollTarget = 0
+        }
+        return .handled
+    }
+
+
+    private func loadData() {
+        categories = DataManager.shared.loadCategories()
+        todos = DataManager.shared.loadTodos()
+        selectedCategory = categories.first
+        filteredCategories = categories
+        filteredSuggestedTodos = Array(todos.prefix(5))
+    }
+    
     
     private func filterCategories(_ filter: String) {
         filteredCategories = categories.filter { category in
@@ -133,7 +174,6 @@ final class TodoViewModel: ObservableObject {
         if isTaggedInput {
             return filteredCategories
         }
-        
         switch viewState {
         case .todoList: return todos
         case .category: return filteredCategories
@@ -144,53 +184,45 @@ final class TodoViewModel: ObservableObject {
     func submitTodoTextfield(action: (() -> Void)? = nil) {
         guard let selectedCategory else { return }
         let todo = Todo(name: todoInputText, category: selectedCategory)
-        selectItem(todo) {
-            action?()
-        }
+        selectItem(todo)
+        action?()
     }
     
     func selectItem(_ item: Any, action: (() -> Void)? = nil) {
         switch viewState {
         case .category:
-            guard let selectedCategoryItem = item as? Category else {return}
-            selectedCategory = selectedCategoryItem
-            viewState = .todoList
-        case .todoInput:
-            // Check if the input consists of category tag.
-            // If yes, then process the category like on the top and remove the tagged text
-            if isTaggedInput {
-                guard let selectedCategoryItem = item as? Category else {return}
+            if let selectedCategoryItem = item as? Category {
                 selectedCategory = selectedCategoryItem
-                filteredCategories = categories
-                removeTagFromFocusText()
-            } else {
-                guard let newTodo = item as? Todo else { return }
-                
-                if let existingIndex = todos.firstIndex(where: { $0.id == newTodo.id }) {
-                    // Todo already exists, move it to the first index
-                    let existingTodo = todos.remove(at: existingIndex)
-                    todos.insert(existingTodo, at: 0)
-                } else {
-                    // Todo doesn't exist, add it at the beginning
-                    todos.insert(newTodo, at: 0)
-                }
-                
-                // update input text
-                todoInputText = newTodo.name
-                
-                // Update suggested todos
-                filteredSuggestedTodos = Array(todos.prefix(5))
-                
-                // Save the updated todos
-                DataManager.shared.saveTodos(todos)
                 viewState = .todoList
             }
-            
+        case .todoInput:
+            if isTaggedInput && selectedItemIndex >= 0 {
+                if let selectedCategoryItem = item as? Category {
+                    selectedCategory = selectedCategoryItem
+                    filteredCategories = categories
+                    removeTagFromFocusText()
+                }
+            } else {
+                if let newTodo = item as? Todo {
+                    if let existingIndex = todos.firstIndex(where: { $0.id == newTodo.id }) {
+                        let existingTodo = todos.remove(at: existingIndex)
+                        todos.insert(existingTodo, at: 0)
+                    } else {
+                        todos.insert(newTodo, at: 0)
+                    }
+                    todoInputText = newTodo.name
+                    filteredSuggestedTodos = Array(todos.prefix(5))
+                    DataManager.shared.saveTodos(todos)
+                    viewState = .todoList
+                }
+            }
         case .todoList:
-            print("todo button clicked")
+            if let newTodo = item as? Todo {
+                isShowTodoAlert = true
+                todoAlertMessage = newTodo.name
+            }
+            
         }
-        
-        updateKeyEventHandlerItems()
         action?()
     }
     
