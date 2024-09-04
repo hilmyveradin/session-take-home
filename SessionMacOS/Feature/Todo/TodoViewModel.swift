@@ -165,9 +165,23 @@ final class TodoViewModel: ObservableObject {
                 removeTagFromFocusText()
             } else {
                 guard let newTodo = item as? Todo else { return }
-                todos.insert(newTodo, at: 0)
+                
+                if let existingIndex = todos.firstIndex(where: { $0.id == newTodo.id }) {
+                    // Todo already exists, move it to the first index
+                    let existingTodo = todos.remove(at: existingIndex)
+                    todos.insert(existingTodo, at: 0)
+                } else {
+                    // Todo doesn't exist, add it at the beginning
+                    todos.insert(newTodo, at: 0)
+                }
+                
+                // update input text
+                todoInputText = newTodo.name
+                
+                // Update suggested todos
                 filteredSuggestedTodos = Array(todos.prefix(5))
                 
+                // Save the updated todos
                 DataManager.shared.saveTodos(todos)
                 viewState = .todoList
             }

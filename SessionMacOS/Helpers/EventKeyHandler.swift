@@ -20,7 +20,9 @@ class KeyEventHandler: ObservableObject {
     // Public Method
     func startMonitoring() {
         monitor = NSEvent.addLocalMonitorForEvents(matching: [.keyDown]) { [weak self] event in
-            self?.handleKeyEvent(event)
+            if let handled = self?.handleKeyEvent(event), handled {
+                return nil  // Consume the event to prevent beep
+            }
             return event
         }
     }
@@ -37,21 +39,24 @@ class KeyEventHandler: ObservableObject {
     }
     
     // Private method
-    private func handleKeyEvent(_ event: NSEvent) {
+    private func handleKeyEvent(_ event: NSEvent) -> Bool {
         switch event.keyCode {
         case 125: // Down arrow
             selectedIndex = min(selectedIndex + 1, items.count - 1)
             onScroll?(selectedIndex)
+            return true
         case 126: // Up arrow
             selectedIndex = max(selectedIndex - 1, 0)
             onScroll?(selectedIndex)
+            return true
         case 36: // Enter
             if selectedIndex >= 0 && selectedIndex < items.count {
                 onSelect?(items[selectedIndex])
+                return true
             }
         default:
             break
         }
+        return false
     }
 }
-
