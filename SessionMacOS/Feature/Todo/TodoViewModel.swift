@@ -1,26 +1,32 @@
 //
-//  TodoViewModel.swift
+//  NewTodoViewModel.swift
 //  SessionMacOS
 //
-//  Created by Hilmy Veradin on 03/09/24.
+//  Created by Hilmy Veradin on 04/09/24.
 //
 
-import SwiftUI
+import Foundation
 
-class TodoViewModel: ObservableObject {
-    @Published var focusText = ""
-    @Published var selectedSession: Session?
-    @Published var todoItems: [String] = []
-    @Published var categoryItems: [String] = []
-    @Published var colorItems: [String] = []
-    @Published var focusItems: [String] = []
-    @Published var filteredCategoryItems: [String] = []
-    @Published var filteredFocusItems: [String] = []
-    @Published var viewState: TodoViewState = .todo
+enum TodoViewState {
+    case category
+    case todoInput
+    case todoList
+}
+
+final class TodoViewModel: ObservableObject {
+    @Published var todoInputText = ""
+    @Published var viewState: TodoViewState = .todoList
     @Published var scrollTarget: Int?
-    @Published var isTagIntention = false
+    @Published var selectedCategory: Category?
     
-    private var sessions: [Session] = []
+    @Published var isTaggedInput = false
+    
+    @Published var filteredCategories: [Category] = []
+    @Published var filteredSuggestedTodos: [Todo] = []
+    
+    @Published var categories: [Category] = []
+    @Published var todos: [Todo] = []
+    
     let keyEventHandler = KeyEventHandler()
     
     init() {
@@ -28,128 +34,153 @@ class TodoViewModel: ObservableObject {
         setupKeyEventHandler()
     }
     
-    private func loadData() {
-        sessions = SessionDataManager.shared.loadSessions()
-        selectedSession = sessions.first
-        updateLists(with: selectedSession!)
-    }
-    
-    private func setupKeyEventHandler() {
-//        keyEventHandler.onSelect = { [weak self] in self?.selectItem($0) }
-        keyEventHandler.onScroll = { [weak self] index in
-            self?.scrollTarget = index
-        }
-    }
-    
     func updateKeyEventHandlerItems() {
         keyEventHandler.updateItems(getRelevantItems())
     }
     
+    private func loadData() {
+        categories = DataManager.shared.loadCategories()
+        todos = DataManager.shared.loadTodos()
+        
+        selectedCategory = categories.first
+        
+        filteredCategories = categories
+        filteredSuggestedTodos = Array(todos.prefix(5)) // get first five todos as recommendation
+    }
+    
+    private func setupKeyEventHandler() {
+        keyEventHandler.onSelect = { [weak self] in self?.selectItem($0) }
+        keyEventHandler.onScroll = { [weak self] index in
+            self?.scrollTarget = index
+        }
+        keyEventHandler.updateItems(getRelevantItems())
+    }
+    
     func handleTextFieldChange(_ newValue: String) {
-        if newValue.last == "@" {
-            isTagIntention = true
-            filteredCategoryItems = categoryItems
+        /*
+         1. Check if the string starts with @
+         2. Check if the last character is @
+         3. Check if @ exists somewhere in the middle
+         4. If no @ exists, handle as regular input
+         */
+        
+        if newValue.hasPrefix("@") {
+            /*
+             1. Remove the @ from the beginning
+             2. Check if there's a space after @
+             3. If space exists, reset to normal input mode
+             4. If no space, filter categories based on text after @
+             */
+            let afterAt = String(newValue.dropFirst())
+            if afterAt.contains(" ") {
+                // Reset if there's a space after @
+                isTaggedInput = false
+                filterSuggestionTodos(newValue)
+            } else {
+                isTaggedInput = true
+                filterCategories(afterAt)
+            }
+        } else if newValue.last == "@" {
+            // If @ is the last character, enter tagged input mode
+            isTaggedInput = true
+            filteredCategories = categories
         } else if newValue.contains("@") {
-            let components = newValue.split(separator: "@")
+            /*
+             1. Split the string based on @, allowing only one split
+             2. If split results in two components, process the part after @
+             3. If there's a space after @, reset to normal input mode
+             4. If no space after @, filter categories
+             5. If split doesn't result in two components (e.g., multiple @), reset to normal input mode
+             */
+            let components = newValue.split(separator: "@", maxSplits: 1)
             if components.count == 2 {
                 let afterAt = String(components[1])
                 if afterAt.contains(" ") {
-                    isTagIntention = false
-                    filteredFocusItems = focusItems
+                    // Reset input and filtered suggested todos
+                    isTaggedInput = false
+                    filterSuggestionTodos(newValue)
                 } else {
-                    isTagIntention = true
+                    isTaggedInput = true
                     filterCategories(afterAt)
                 }
+            } else {
+                // Handle case like "a@abade" or multiple @
+                isTaggedInput = false
+                filterSuggestionTodos(newValue)
             }
         } else {
-            isTagIntention = false
-            filterFocusItems(newValue)
+            // No @ in the input, handle as regular input
+            isTaggedInput = false
+            filterSuggestionTodos(newValue)
         }
         
         updateKeyEventHandlerItems()
     }
     
     private func filterCategories(_ filter: String) {
-        filteredCategoryItems = categoryItems.filter { $0.lowercased().starts(with: filter.lowercased()) }
+        filteredCategories = categories.filter { category in
+            category.name.lowercased().starts(with: filter.lowercased())
+        }
+    }
+
+    private func filterSuggestionTodos(_ filter: String) {
+        filteredSuggestedTodos = Array(todos.prefix(5)).filter { todo in
+            todo.name.lowercased().starts(with: filter.lowercased())
+        }
     }
     
-    private func filterFocusItems(_ filter: String) {
-        filteredFocusItems = filter.isEmpty ? focusItems : focusItems.filter { $0.lowercased().contains(filter.lowercased()) }
-    }
-    
-    private func getRelevantItems() -> [String] {
-        if isTagIntention {
-            return filteredCategoryItems
+    private func getRelevantItems() -> [Any] {
+        if isTaggedInput {
+            return filteredCategories
         }
         
         switch viewState {
-        case .todo: return todoItems
-        case .category: return filteredCategoryItems
-        case .focus: return filteredFocusItems
+        case .todoList: return todos
+        case .category: return filteredCategories
+        case .todoInput: return filteredSuggestedTodos
         }
     }
     
-    func selectItem(_ item: String, action: (() -> Void)? = nil) {
+    func selectItem(_ item: Any? = nil, action: (() -> Void)? = nil) {
         switch viewState {
-        case .todo:
-            print("todo button clicked")
         case .category:
-            if let session = sessions.first(where: { $0.name == item }) {
-                selectedSession = session
-                updateLists(with: session)
-                viewState = .todo
-                addFocusToSession()
-            }
-        case .focus:
-            if isTagIntention {
-                if let session = sessions.first(where: { $0.name == item }) {
-                    selectedSession = session
-                    updateLists(with: session)
-                    viewState = .todo
-                    addFocusToSession()
-                }
+            guard let selectedCategoryItem = item as? Category else {return}
+            selectedCategory = selectedCategoryItem
+            viewState = .todoList
+        case .todoInput:
+            // Check if the input consists of category tag.
+            // If yes, then process the category like on the top and remove the tagged text
+            if isTaggedInput {
+                guard let selectedCategoryItem = item as? Category else {return}
+                selectedCategory = selectedCategoryItem
+                filteredCategories = categories
+                removeTagFromFocusText()
             } else {
-                
-                addFocusToSession()
-                viewState = .todo
-                focusText = item
-                
+                updateTodoList()
+                viewState = .todoList
             }
+            
+        case .todoList:
+            print("todo button clicked")
         }
+        
         updateKeyEventHandlerItems()
         action?()
     }
     
-    private func updateLists(with session: Session) {
-        todoItems = session.todo
-        categoryItems = sessions.map { $0.name }
-        focusItems = session.focus
-        colorItems = sessions.map { $0.color }
-        filteredCategoryItems = categoryItems
-        filteredFocusItems = focusItems
+    private func updateTodoList() {
+        guard let selectedCategory else { return }
+        let newTodo = Todo(name: todoInputText, category: selectedCategory)
+        
+        todos.insert(newTodo, at: 0)
+        filteredSuggestedTodos = Array(todos.prefix(5))
+        
+        DataManager.shared.saveTodos(todos)
     }
     
-    private func addFocusToSession() {
-        guard var updatedSession = selectedSession else { return }
-        
-        let newFocus = removeTagFromFocusText()
-        if !newFocus.isEmpty && !updatedSession.focus.contains(newFocus) {
-            updatedSession.focus.append(newFocus)
-            selectedSession = updatedSession
-            focusItems = updatedSession.focus
-            filteredFocusItems = focusItems
-            
-            // Update the session in UserDefaults
-            SessionDataManager.shared.updateSession(updatedSession)
+    private func removeTagFromFocusText() {
+        if let atIndex = todoInputText.firstIndex(of: "@") {
+            todoInputText = String(todoInputText[..<atIndex]).trimmingCharacters(in: .whitespaces)
         }
-        
-        focusText = ""
-    }
-    
-    private func removeTagFromFocusText() -> String {
-        if let atIndex = focusText.firstIndex(of: "@") {
-            return String(focusText[..<atIndex]).trimmingCharacters(in: .whitespaces)
-        }
-        return focusText.trimmingCharacters(in: .whitespaces)
     }
 }
