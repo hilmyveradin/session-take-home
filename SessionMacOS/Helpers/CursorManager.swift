@@ -9,16 +9,16 @@ import AppKit
 
 class CursorManager {
     static let shared = CursorManager()
-    
+
     private var isHidden = false
     private var mouseMovementMonitor: Any?
-    
+
     private init() {}
-    
+
     var isCursorShown: Bool {
         return !isHidden
     }
-    
+
     func hideCursor() {
         if !isHidden {
             NSCursor.hide()
@@ -26,7 +26,7 @@ class CursorManager {
             startMonitoringMouseMovement()
         }
     }
-    
+
     private func showCursor() {
         if isHidden {
             NSCursor.unhide()
@@ -34,7 +34,7 @@ class CursorManager {
             stopMonitoringMouseMovement()
         }
     }
-    
+
     private func startMonitoringMouseMovement() {
         mouseMovementMonitor = NSEvent.addLocalMonitorForEvents(matching: [.mouseMoved]) { event in
             DispatchQueue.main.async {
@@ -43,7 +43,7 @@ class CursorManager {
             return event
         }
     }
-    
+
     private func stopMonitoringMouseMovement() {
         if let monitor = mouseMovementMonitor {
             NSEvent.removeMonitor(monitor)

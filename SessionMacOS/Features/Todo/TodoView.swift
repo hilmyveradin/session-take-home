@@ -10,14 +10,14 @@ import SwiftUI
 struct TodoView: View {
     @StateObject private var viewModel = TodoViewModel()
     @FocusState private var viewFocus: TodoViewState?
-    
+
     private var viewFocusBinding: Binding<TodoViewState?> {
         Binding(
             get: { self.viewFocus },
             set: { self.viewFocus = $0 }
         )
     }
-    
+
     var body: some View {
         ZStack {
             VStack(spacing: 6) {
@@ -26,7 +26,7 @@ struct TodoView: View {
                 todoList
             }
             .padding()
-            
+
             switch viewModel.viewState {
             case .todoList: EmptyView()
             case .category: categoryListView()
@@ -43,18 +43,17 @@ struct TodoView: View {
             viewModel.onViewStateChange(newValue: viewModel.viewState, viewFocus: viewFocusBinding)
         }
     }
-    
+
     private var categoryHeader: some View {
         Button(action: { viewModel.onCategoryHeaderTap() }) {
             HStack {
-                
                 Circle()
                     .fill(Color(hex: viewModel.selectedCategory?.color ?? "#000000"))
                     .frame(width: 6, height: 6)
 
                 Text(viewModel.selectedCategoryName)
                     .foregroundStyle(Color.textPrimary)
-                    
+
                 Spacer()
                 Image(systemName: "chevron.down")
                     .font(.system(size: 8, weight: .black))
@@ -62,7 +61,7 @@ struct TodoView: View {
                     .frame(width: 8, height: 4)
                     .foregroundStyle(Color.gray)
             }
-            
+
             .padding(.horizontal, 12)
             .padding(.vertical, 8)
             .background(.background)
@@ -70,30 +69,30 @@ struct TodoView: View {
         }
         .buttonStyle(PlainButtonStyle())
     }
-    
+
     private var todoTextField: some View {
         TextField("", text: $viewModel.todoInputText, prompt: Text("What's your focus?")
             .font(.inter)
             .fontWeight(.medium))
-        .foregroundStyle(viewModel.todoInputText == "" ? Color.textPlaceholder : Color.textPrimary)
-                .padding(.horizontal, 18)
-                .padding(.vertical, 10)
-                .background(.background)
-                .textFieldStyle(PlainTextFieldStyle())
-                .cornerRadius(4)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 4)
-                        .stroke(viewModel.viewState == .todoInput ? Color.tintPrimary : Color.clear, lineWidth: 2)
-                )
-                .focused($viewFocus, equals: .todoInput)
-                .onKeyPress(keys: [.upArrow, .downArrow, .return]) { keyPress in
-                    viewModel.handleKeyPress(keyPress)
-                }
-                .onChange(of: viewModel.todoInputText) {
-                    viewModel.handleTextFieldChange(viewModel.todoInputText)
-                }
-        }
-    
+            .foregroundStyle(viewModel.todoInputText == "" ? Color.textPlaceholder : Color.textPrimary)
+            .padding(.horizontal, 18)
+            .padding(.vertical, 10)
+            .background(.background)
+            .textFieldStyle(PlainTextFieldStyle())
+            .cornerRadius(4)
+            .overlay(
+                RoundedRectangle(cornerRadius: 4)
+                    .stroke(viewModel.viewState == .todoInput ? Color.tintPrimary : Color.clear, lineWidth: 2)
+            )
+            .focused($viewFocus, equals: .todoInput)
+            .onKeyPress(keys: [.upArrow, .downArrow, .return]) { keyPress in
+                viewModel.handleKeyPress(keyPress)
+            }
+            .onChange(of: viewModel.todoInputText) {
+                viewModel.handleTextFieldChange(viewModel.todoInputText)
+            }
+    }
+
     private var todoList: some View {
         ScrollViewReader { proxy in
             List {
@@ -115,71 +114,67 @@ struct TodoView: View {
         }
         .padding(.top, 28)
     }
-    
+
     private func todoItemView(item: Todo, index: Int) -> some View {
         Group {
-        HoverableButton(isPriority: viewModel.viewState == .todoList, action: {
-            viewModel.selectItem(item)
-        }) {
-            HStack {
-                Image(systemName: viewModel.selectedTodoUidSet.contains(item.id) ? "checkmark.square.fill" : "square")
-                    .foregroundStyle(
-                        viewModel.isItemViewHovered(index: index, currentState: .todoList) ? Color.white :
-                        viewModel.selectedTodoUidSet.contains(item.id) ? Color.tintPrimary :
-                        Color.textPrimary
-                    )
-                    
+            HoverableButton(isPriority: viewModel.viewState == .todoList, action: {
+                viewModel.selectItem(item)
+            }) {
+                HStack {
+                    Image(systemName: viewModel.selectedTodoUidSet.contains(item.id) ? "checkmark.square.fill" : "square")
+                        .foregroundStyle(
+                            viewModel.isItemViewHovered(index: index, currentState: .todoList) ? Color.white :
+                                viewModel.selectedTodoUidSet.contains(item.id) ? Color.tintPrimary :
+                                Color.textPrimary
+                        )
 
-                
-                VStack(alignment:.leading, spacing:0) {
-                    Text(item.name)
-                        .font(.inter)
-                        .fontWeight(.medium)
-                        .foregroundStyle(viewModel.isItemViewHovered(index: index, currentState: .todoList) ? Color.white : Color.textPrimary)
-
-                    
-                    HStack(spacing: 4) {
-                        Circle()
-                            .fill( viewModel.isItemViewHovered(index: index, currentState: .todoList) ? Color.white : Color(hex: item.category.color) )
-                            .frame(width: 6, height: 6)
-
-                        Text(item.category.name.capitalized)
-                            .font(.smallInter)
+                    VStack(alignment: .leading, spacing: 0) {
+                        Text(item.name)
+                            .font(.inter)
                             .fontWeight(.medium)
-                            .foregroundStyle(viewModel.isItemViewHovered(index: index, currentState: .todoList) ? Color.white : Color.textSecondary)
+                            .foregroundStyle(viewModel.isItemViewHovered(index: index, currentState: .todoList) ? Color.white : Color.textPrimary)
+
+                        HStack(spacing: 4) {
+                            Circle()
+                                .fill(viewModel.isItemViewHovered(index: index, currentState: .todoList) ? Color.white : Color(hex: item.category.color))
+                                .frame(width: 6, height: 6)
+
+                            Text(item.category.name.capitalized)
+                                .font(.smallInter)
+                                .fontWeight(.medium)
+                                .foregroundStyle(viewModel.isItemViewHovered(index: index, currentState: .todoList) ? Color.white : Color.textSecondary)
+                        }
                     }
+                    Spacer()
                 }
-                Spacer()
+                .padding(.vertical, 10.5)
+                .padding(.horizontal, 8)
+                .contentShape(Rectangle())
             }
-            .padding(.vertical, 10.5)
-            .padding(.horizontal, 8)
-            .contentShape(Rectangle())
-        }
-        .onHover { hovering in
-            viewModel.onTodoItemHover(hovering: hovering, index: index)
-        }
-        .id(index)
-        .background(viewModel.isItemViewHovered(index: index, currentState: .todoList) ? Color.tintPrimary : Color.white)
-        .cornerRadius(4)
-        .animation(.easeInOut, value: viewModel.isItemViewHovered(index: index, currentState: .todoList))
-        .listRowSeparator(.hidden)
+            .onHover { hovering in
+                viewModel.onTodoItemHover(hovering: hovering, index: index)
+            }
+            .id(index)
+            .background(viewModel.isItemViewHovered(index: index, currentState: .todoList) ? Color.tintPrimary : Color.white)
+            .cornerRadius(4)
+            .animation(.easeInOut, value: viewModel.isItemViewHovered(index: index, currentState: .todoList))
+            .listRowSeparator(.hidden)
         }
         .padding(.bottom, 6)
     }
-    
+
     private func categoryListView() -> some View {
         ZStack {
             Color.black.opacity(0.001)
                 .onTapGesture {
                     viewModel.onCategoryListBackgroundTap()
                 }
-            
+
             VStack {
                 ScrollViewReader { proxy in
                     List {
                         ForEach(Array(viewModel.filteredCategories.enumerated()), id: \.element.id) { index, item in
                             categoryItemView(item: item, index: index)
-
                         }
                     }
                     .scrollIndicators(.never)
@@ -205,21 +200,21 @@ struct TodoView: View {
         }
         .padding(.horizontal, 16)
     }
-    
+
     private func categoryItemView(item: Category, index: Int, currentState: TodoViewState = .category) -> some View {
         HoverableButton(isPriority: viewModel.viewState == currentState, action: {
             viewModel.selectItem(item)
         }) {
             HStack {
                 Circle()
-                    .fill( viewModel.isItemViewHovered(index: index, currentState: currentState) ? Color.white : Color(hex: item.color) )
+                    .fill(viewModel.isItemViewHovered(index: index, currentState: currentState) ? Color.white : Color(hex: item.color))
                     .frame(width: 8, height: 8)
 
                 Text(item.name.capitalized)
                     .font(.inter)
                     .fontWeight(.medium)
-                    .foregroundStyle(viewModel.isItemViewHovered(index: index, currentState: currentState) ? Color.white : Color.textPrimary )
-                
+                    .foregroundStyle(viewModel.isItemViewHovered(index: index, currentState: currentState) ? Color.white : Color.textPrimary)
+
                 Spacer()
             }
             .padding(.horizontal, 12)
@@ -235,12 +230,12 @@ struct TodoView: View {
         .listRowSeparator(.hidden)
         .listRowInsets(EdgeInsets(top: 2, leading: 0, bottom: 2, trailing: 0))
     }
-    
+
     private func suggestedTodoListView() -> some View {
         if viewModel.isJustSubmittedTodo {
             return AnyView(EmptyView())
         }
-        
+
         return AnyView(
             VStack {
                 Color.black.opacity(0.001)
@@ -248,7 +243,7 @@ struct TodoView: View {
                         viewModel.onSuggestedListBackgroundTap()
                     }
                     .frame(height: 90)
-                
+
                 Group {
                     ScrollViewReader { proxy in
                         if viewModel.isTaggedInput {
@@ -296,7 +291,7 @@ struct TodoView: View {
                 }
                 .padding(.horizontal, 16)
                 .shadow(color: Color.black.opacity(0.2), radius: 20, x: 0, y: 30)
-                
+
                 Color.black.opacity(0.001)
                     .onTapGesture {
                         viewModel.onSuggestedListBackgroundTap()
@@ -306,21 +301,17 @@ struct TodoView: View {
             .zIndex(2)
         )
     }
-    
+
     private func suggestedTodoItemView(item: Todo, index: Int) -> some View {
         HoverableButton(isPriority: viewModel.viewState == .todoInput, action: {
             viewModel.selectItem(item)
         }) {
-            
             HStack {
-                
-            
-            Text(item.name.capitalized)
+                Text(item.name.capitalized)
                     .font(.inter)
                     .fontWeight(.medium)
-                .foregroundStyle(viewModel.isItemViewHovered(index: index, currentState: .todoInput) ? Color.white : Color.textPrimary )
+                    .foregroundStyle(viewModel.isItemViewHovered(index: index, currentState: .todoInput) ? Color.white : Color.textPrimary)
 
-                
                 Spacer()
             }
             .padding(.horizontal, 12)

@@ -8,12 +8,11 @@
 import SwiftUI
 
 extension Color {
-    
     static let textPrimary = Color(hex: "606060")
     static let textSecondary = Color(hex: "8A8A8A")
     static let tintPrimary = Color(hex: "3073F5")
     static let textPlaceholder = Color(hex: "#AAAAAA")
-    
+
     init(hex: String) {
         let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
         var int: UInt64 = 0
@@ -34,7 +33,7 @@ extension Color {
             .sRGB,
             red: Double(r) / 255,
             green: Double(g) / 255,
-            blue:  Double(b) / 255,
+            blue: Double(b) / 255,
             opacity: Double(a) / 255
         )
     }

@@ -8,6 +8,7 @@
 import Foundation
 
 // MARK: - Category Model
+
 struct Category: Codable, Identifiable {
     let id: UUID
     let name: String
@@ -21,7 +22,7 @@ struct Category: Codable, Identifiable {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         name = try container.decode(String.self, forKey: .name)
         color = try container.decode(String.self, forKey: .color)
-        id = UUID()  // Generate a new UUID for each decoded category
+        id = UUID() // Generate a new UUID for each decoded category
     }
 }
 

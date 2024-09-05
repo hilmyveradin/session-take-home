@@ -11,13 +11,13 @@ struct HoverableButton<Content: View>: View {
     let isPriority: Bool
     let action: () -> Void
     let content: () -> Content
-    
+
     init(isPriority: Bool, action: @escaping () -> Void, @ViewBuilder content: @escaping () -> Content) {
         self.isPriority = isPriority
         self.action = action
         self.content = content
     }
-    
+
     var body: some View {
         Button(action: action) {
             content()

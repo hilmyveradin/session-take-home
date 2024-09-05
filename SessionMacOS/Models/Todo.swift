@@ -23,7 +23,7 @@ struct Todo: Codable, Identifiable {
     }
 
     init(name: String, category: Category) {
-        self.id = "\(name)|\(category.name)"
+        id = "\(name)|\(category.name)"
         self.name = name
         self.category = category
     }

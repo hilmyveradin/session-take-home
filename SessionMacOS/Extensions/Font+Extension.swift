@@ -5,7 +5,6 @@
 //  Created by Hilmy Veradin on 05/09/24.
 //
 
-
 import SwiftUI
 
 extension Font {
