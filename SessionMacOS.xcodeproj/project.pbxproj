@@ -20,7 +20,9 @@
 		017AD8E72C86E42B001B1577 /* SessionMacOSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 017AD8E62C86E42B001B1577 /* SessionMacOSApp.swift */; };
 		017AD8EB2C86E42D001B1577 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 017AD8EA2C86E42D001B1577 /* Assets.xcassets */; };
 		017AD8EE2C86E42D001B1577 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 017AD8ED2C86E42D001B1577 /* Preview Assets.xcassets */; };
+		01DBFDF72C89E8F50075BA9E /* Inter.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 01DBFDF62C89E8F50075BA9E /* Inter.ttf */; };
 		01F493472C899FEB00CFC2CC /* View+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01F493462C899FEB00CFC2CC /* View+Extension.swift */; };
+		01F493492C89E57E00CFC2CC /* Font+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01F493482C89E57E00CFC2CC /* Font+Extension.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -39,7 +41,10 @@
 		017AD8EA2C86E42D001B1577 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		017AD8ED2C86E42D001B1577 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		017AD8EF2C86E42D001B1577 /* SessionMacOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SessionMacOS.entitlements; sourceTree = "<group>"; };
+		01DBFDF62C89E8F50075BA9E /* Inter.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Inter.ttf; sourceTree = "<group>"; };
 		01F493462C899FEB00CFC2CC /* View+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "View+Extension.swift"; sourceTree = "<group>"; };
+		01F493482C89E57E00CFC2CC /* Font+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Font+Extension.swift"; sourceTree = "<group>"; };
+		01F4934F2C89E70B00CFC2CC /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -60,6 +65,7 @@
 				0163B7802C884EE9001A82DE /* DataManager.swift */,
 				0163B78C2C88CEDA001A82DE /* CursorManager.swift */,
 				01F493462C899FEB00CFC2CC /* View+Extension.swift */,
+				01F493482C89E57E00CFC2CC /* Font+Extension.swift */,
 			);
 			path = Helpers;
 			sourceTree = "<group>";
@@ -117,11 +123,13 @@
 		017AD8E52C86E42B001B1577 /* SessionMacOS */ = {
 			isa = PBXGroup;
 			children = (
+				01F4934F2C89E70B00CFC2CC /* Info.plist */,
 				017AD8E62C86E42B001B1577 /* SessionMacOSApp.swift */,
 				0154F2B12C87225800F02CD0 /* Model */,
 				0154F2B22C87227300F02CD0 /* Feature */,
 				0154F2B42C87230000F02CD0 /* Components */,
 				0154F2AC2C87130400F02CD0 /* Helpers */,
+				01F4934C2C89E62000CFC2CC /* Fonts */,
 				0163B77C2C884EAD001A82DE /* CategoryData.json */,
 				0163B77E2C884EBC001A82DE /* TodoData.json */,
 				017AD8EA2C86E42D001B1577 /* Assets.xcassets */,
@@ -137,6 +145,14 @@
 				017AD8ED2C86E42D001B1577 /* Preview Assets.xcassets */,
 			);
 			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+		01F4934C2C89E62000CFC2CC /* Fonts */ = {
+			isa = PBXGroup;
+			children = (
+				01DBFDF62C89E8F50075BA9E /* Inter.ttf */,
+			);
+			path = Fonts;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -200,6 +216,7 @@
 				017AD8EE2C86E42D001B1577 /* Preview Assets.xcassets in Resources */,
 				0163B77D2C884EAD001A82DE /* CategoryData.json in Resources */,
 				0163B77F2C884EBC001A82DE /* TodoData.json in Resources */,
+				01DBFDF72C89E8F50075BA9E /* Inter.ttf in Resources */,
 				017AD8EB2C86E42D001B1577 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -213,6 +230,7 @@
 			files = (
 				0163B78D2C88CEDA001A82DE /* CursorManager.swift in Sources */,
 				0163B7852C884F2B001A82DE /* Todo.swift in Sources */,
+				01F493492C89E57E00CFC2CC /* Font+Extension.swift in Sources */,
 				01F493472C899FEB00CFC2CC /* View+Extension.swift in Sources */,
 				0163B7832C884F16001A82DE /* Category.swift in Sources */,
 				0163B7892C885056001A82DE /* TodoViewModel.swift in Sources */,
@@ -357,6 +375,7 @@
 				DEVELOPMENT_ASSET_PATHS = "\"SessionMacOS/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = SessionMacOS/Info.plist;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -383,6 +402,7 @@
 				DEVELOPMENT_ASSET_PATHS = "\"SessionMacOS/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = SessionMacOS/Info.plist;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

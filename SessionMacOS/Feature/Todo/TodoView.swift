@@ -21,7 +21,6 @@ struct TodoView: View {
     var body: some View {
         ZStack {
             VStack(spacing: 16) {
-                todoHeader
                 categoryHeader
                 todoTextField
                 todoList
@@ -45,30 +44,30 @@ struct TodoView: View {
         }
     }
     
-    private var todoHeader: some View {
-        Text("Todo List")
-            .fontWeight(.bold)
-            .font(.title)
-    }
-    
     private var categoryHeader: some View {
         Button(action: { viewModel.onCategoryHeaderTap() }) {
             HStack {
+                
                 Circle()
-                    .fill(Color(hex: viewModel.selectedCategory?.color ?? ""))
-                    .frame(width: 8, height: 8)
+                    .fill(Color(hex: viewModel.selectedCategory?.color ?? "#000000"))
+                    .frame(width: 6, height: 6)
+
                 Text(viewModel.selectedCategoryName)
+                    .foregroundStyle(Color.textPrimary)
+                    
                 Spacer()
                 Image(systemName: "chevron.down")
+                    .font(.system(size: 8))
+                    .frame(width: 8, height: 4)
                     .foregroundColor(.gray)
             }
+            
             .padding(.horizontal, 12)
             .padding(.vertical, 8)
             .background(.background)
-            .cornerRadius(20)
+            .cornerRadius(4)
         }
         .buttonStyle(PlainButtonStyle())
-        .frame(width: 196)
     }
     
     private var todoTextField: some View {
@@ -196,15 +195,17 @@ struct TodoView: View {
         }) {
             HStack {
                 Circle()
-                    .fill(Color(hex: item.color))
-                    .frame(width: 12, height: 12)
+                    .fill( viewModel.isItemViewHovered(index: index, currentState: currentState) ? Color.white : Color(hex: item.color) )
+                    .frame(width: 8, height: 8)
+
                 Text(item.name.capitalized)
-                    .foregroundColor(.primary)
+                    .foregroundStyle(viewModel.isItemViewHovered(index: index, currentState: currentState) ? Color.white : Color.textPrimary )
+                
                 Spacer()
             }
-            .padding(.horizontal, 4)
+            .padding(.horizontal, 12)
             .padding(.vertical, 8)
-            .contentShape(Rectangle())
+            .cornerRadius(20)
         }
         .onHover { hovering in
             viewModel.onCategoryItemHover(hovering: hovering, index: index, currentState: currentState)
