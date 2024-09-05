@@ -197,9 +197,11 @@ final class TodoViewModel: ObservableObject {
                         todos.insert(newTodo, at: 0)
                     }
                     todoInputText = newTodo.name
+                    selectedCategory = newTodo.category
                     filterSuggestionTodos("")
                     DataManager.shared.saveTodos(todos)
                     viewState = .todoList
+                    
                 }
             }
         case .todoList:
