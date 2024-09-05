@@ -177,7 +177,7 @@ struct TodoView: View {
                     List {
                         ForEach(Array(viewModel.filteredCategories.enumerated()), id: \.element.id) { index, item in
                             categoryItemView(item: item, index: index)
-                                .listRowInsets(.init()) // remove insets
+
                         }
                     }
                     .scrollIndicators(.never)
@@ -228,6 +228,7 @@ struct TodoView: View {
         .background(viewModel.isItemViewHovered(index: index, currentState: currentState) ? Color.tintPrimary : Color.clear)
         .animation(.easeInOut, value: viewModel.isItemViewHovered(index: index, currentState: currentState))
         .listRowSeparator(.hidden)
+        .listRowInsets(EdgeInsets(top: 1, leading: 0, bottom: 1, trailing: 0))
     }
     
     private func suggestedTodoListView() -> some View {
