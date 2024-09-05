@@ -42,8 +42,10 @@ final class TodoViewModel: ObservableObject {
     
     @Published var selectedTodoUidSet: Set<String> = []
     
+    @Published var isJustSubmittedTodo = false
+    
     var selectedCategoryName: String {
-        selectedCategory?.name ?? "No Category Found"
+        selectedCategory?.name.capitalized ?? "No Category Found"
     }
     
     var isRegularTextfield: Bool {
@@ -53,6 +55,8 @@ final class TodoViewModel: ObservableObject {
     private var currentItems: [Any] {
         getRelevantItems()
     }
+    
+    private var isJustSubmitTodo = false
     
     // MARK: - INIT
     init() {
@@ -151,6 +155,7 @@ final class TodoViewModel: ObservableObject {
     }
     
     func handleTextFieldChange(_ newValue: String) {
+        isJustSubmittedTodo = false
         let atPattern = #"@([^\s@]*)$"#
         
         if let match = newValue.range(of: atPattern, options: .regularExpression) {
@@ -198,7 +203,6 @@ final class TodoViewModel: ObservableObject {
                     }
                     todoInputText = newTodo.name
                     selectedCategory = newTodo.category
-                    filterSuggestionTodos("")
                     DataManager.shared.saveTodos(todos)
                     viewState = .todoList
                     
@@ -228,13 +232,15 @@ final class TodoViewModel: ObservableObject {
     
     private func deferredMoveSelection(direction: MoveDirection) {
         Task { @MainActor in
+            
+            
             switch direction {
             case .up:
                 selectedItemIndex = max(selectedItemIndex - 1, 0)
             case .down:
                 selectedItemIndex = min(selectedItemIndex + 1, currentItems.count - 1)
             }
-            
+            isJustSubmittedTodo = false
             CursorManager.shared.hideCursor()
             scrollTarget = selectedItemIndex
         }
@@ -242,7 +248,6 @@ final class TodoViewModel: ObservableObject {
     
     private func deferredHandleReturnKey() -> KeyPress.Result {
         Task { @MainActor in
-
             // Handle enter key in textfield wile not selecting any index item
             if (viewState == .todoInput && todoInputText != "" && selectedItemIndex <= 0 && isRegularTextfield) {
                 self.submitTodoTextfield()
@@ -253,7 +258,7 @@ final class TodoViewModel: ObservableObject {
             if selectedItemIndex >= 0 && selectedItemIndex < currentItems.count {
                 selectItem(currentItems[selectedItemIndex])
             }
-            
+            isJustSubmittedTodo = false
             selectedItemIndex = -1
             scrollTarget = 0
         }
@@ -263,8 +268,13 @@ final class TodoViewModel: ObservableObject {
     private func submitTodoTextfield(action: (() -> Void)? = nil) {
         guard let selectedCategory else { return }
         let todo = Todo(name: todoInputText, category: selectedCategory)
+        
         // find todo from todos with same name and category
-        selectItem(todo)
+        selectItem(todo) {
+            self.isJustSubmittedTodo = true
+            self.viewState = .todoInput
+        }
+        
         action?()
     }
     

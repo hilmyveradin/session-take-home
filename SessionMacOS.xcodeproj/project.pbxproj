@@ -20,6 +20,7 @@
 		017AD8E72C86E42B001B1577 /* SessionMacOSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 017AD8E62C86E42B001B1577 /* SessionMacOSApp.swift */; };
 		017AD8EB2C86E42D001B1577 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 017AD8EA2C86E42D001B1577 /* Assets.xcassets */; };
 		017AD8EE2C86E42D001B1577 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 017AD8ED2C86E42D001B1577 /* Preview Assets.xcassets */; };
+		01F493472C899FEB00CFC2CC /* View+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01F493462C899FEB00CFC2CC /* View+Extension.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -38,6 +39,7 @@
 		017AD8EA2C86E42D001B1577 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		017AD8ED2C86E42D001B1577 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		017AD8EF2C86E42D001B1577 /* SessionMacOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SessionMacOS.entitlements; sourceTree = "<group>"; };
+		01F493462C899FEB00CFC2CC /* View+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "View+Extension.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -57,6 +59,7 @@
 				0154F2AD2C87131100F02CD0 /* Color+Extension.swift */,
 				0163B7802C884EE9001A82DE /* DataManager.swift */,
 				0163B78C2C88CEDA001A82DE /* CursorManager.swift */,
+				01F493462C899FEB00CFC2CC /* View+Extension.swift */,
 			);
 			path = Helpers;
 			sourceTree = "<group>";
@@ -210,6 +213,7 @@
 			files = (
 				0163B78D2C88CEDA001A82DE /* CursorManager.swift in Sources */,
 				0163B7852C884F2B001A82DE /* Todo.swift in Sources */,
+				01F493472C899FEB00CFC2CC /* View+Extension.swift in Sources */,
 				0163B7832C884F16001A82DE /* Category.swift in Sources */,
 				0163B7892C885056001A82DE /* TodoViewModel.swift in Sources */,
 				0163B7872C88504B001A82DE /* TodoView.swift in Sources */,

@@ -20,11 +20,13 @@ struct TodoView: View {
     
     var body: some View {
         ZStack {
-            VStack {
+            VStack(spacing: 16) {
+                todoHeader
                 categoryHeader
                 todoTextField
                 todoList
             }
+            .padding()
             
             switch viewModel.viewState {
             case .todoList: EmptyView()
@@ -43,31 +45,59 @@ struct TodoView: View {
         }
     }
     
+    private var todoHeader: some View {
+        Text("Todo List")
+            .fontWeight(.bold)
+            .font(.title)
+    }
+    
     private var categoryHeader: some View {
-        HStack {
-            Text(viewModel.selectedCategoryName)
-            Spacer()
-            Image(systemName: "chevron.down")
+        Button(action: { viewModel.onCategoryHeaderTap() }) {
+            HStack {
+                Circle()
+                    .fill(Color(hex: viewModel.selectedCategory?.color ?? ""))
+                    .frame(width: 8, height: 8)
+                Text(viewModel.selectedCategoryName)
+                Spacer()
+                Image(systemName: "chevron.down")
+                    .foregroundColor(.gray)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .background(.background)
+            .cornerRadius(20)
         }
-        .contentShape(Rectangle())
-        .padding()
-        .background(.background)
-        .onTapGesture { viewModel.onCategoryHeaderTap() }
-        .frame(height: 50)
+        .buttonStyle(PlainButtonStyle())
+        .frame(width: 196)
     }
     
     private var todoTextField: some View {
-        TextField("What's your focus?", text: $viewModel.todoInputText)
-            .padding()
-            .background(.background)
-            .frame(height: 50)
-            .focused($viewFocus, equals: .todoInput)
-            .onKeyPress(keys: [.upArrow, .downArrow, .return]) { keyPress in
-                viewModel.handleKeyPress(keyPress)
-            }
-            .onChange(of: viewModel.todoInputText) {
-                viewModel.handleTextFieldChange(viewModel.todoInputText)
-            }
+        HStack {
+            TextField("What's your focus?", text: $viewModel.todoInputText)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .font(.system(size: 16, weight: .regular))
+                .textFieldStyle(PlainTextFieldStyle())
+                .focused($viewFocus, equals: .todoInput)
+                .onKeyPress(keys: [.upArrow, .downArrow, .return]) { keyPress in
+                    viewModel.handleKeyPress(keyPress)
+                }
+                .onChange(of: viewModel.todoInputText) {
+                    viewModel.handleTextFieldChange(viewModel.todoInputText)
+                }
+            
+            Image(systemName: "magnifyingglass")
+                .foregroundColor(.gray)
+                .padding(.horizontal, 12)
+        }
+        .background(.background)
+        .accentColor(.gray)
+        .overlay(
+            RoundedRectangle(cornerRadius: 20)
+                .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+        )
+        .cornerRadius(20)
+        .padding(.horizontal, 36)
     }
     
     private var todoList: some View {
@@ -77,6 +107,8 @@ struct TodoView: View {
                     todoItemView(item: item, index: index)
                 }
             }
+            .listStyle(PlainListStyle())
+            .cornerRadius(10)
             .focused($viewFocus, equals: .todoList)
             .onKeyPress(keys: [.upArrow, .downArrow, .return]) { keyPress in
                 viewModel.handleKeyPress(keyPress)
@@ -85,166 +117,198 @@ struct TodoView: View {
                 viewModel.scrollToTarget(proxy: proxy, currentViewState: .todoList)
             }
         }
+        .cardStyle()
     }
     
     private func todoItemView(item: Todo, index: Int) -> some View {
-        
-        return HoverableButton(isPriority: viewModel.viewState == .todoList, action: {
+        HoverableButton(isPriority: viewModel.viewState == .todoList, action: {
             viewModel.selectItem(item)
         }) {
             HStack {
-                if viewModel.selectedTodoUidSet.contains(item.id) {
-                    Image(systemName: "checkmark.square.fill")
-                        .foregroundColor(.blue)
-                } else {
-                    Image(systemName: "square")
-                        .foregroundColor(.gray)
-                }
+                Image(systemName: viewModel.selectedTodoUidSet.contains(item.id) ? "checkmark.circle.fill" : "circle")
+                    .foregroundColor(viewModel.selectedTodoUidSet.contains(item.id) ? .accentColor : .gray)
                 Text(item.name)
+                    .foregroundColor(.primary)
                 Spacer()
-                Text(item.category.name)
+                Text(item.category.name.capitalized)
                     .font(.caption)
                     .foregroundColor(Color(hex: item.category.color))
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Color(hex: item.category.color).opacity(0.1))
+                    .cornerRadius(8)
             }
-            .padding(8)
+            .padding(.vertical, 8)
+            .padding(.horizontal, 4)
             .contentShape(Rectangle())
         }
         .onHover { hovering in
             viewModel.onTodoItemHover(hovering: hovering, index: index)
         }
         .id(index)
-        .background(viewModel.isItemViewHovered(index: index, currentState: .todoList) ? Color.blue.opacity(0.2) : Color.clear)
-        .clipShape(.rect(cornerRadius: 4))
+        .background(viewModel.isItemViewHovered(index: index, currentState: .todoList) ? Color.accentColor.opacity(0.1) : Color.clear)
+        .cornerRadius(8)
+        .animation(.easeInOut, value: viewModel.isItemViewHovered(index: index, currentState: .todoList))
     }
     
     private func categoryListView() -> some View {
-        VStack {
-            Color.black.opacity(0.01)
-                .frame(height: 50)
+        ZStack {
+            Color.black.opacity(0.001)
                 .onTapGesture {
                     viewModel.onCategoryListBackgroundTap()
                 }
             
-            ScrollViewReader { proxy in
-                List {
-                    ForEach(Array(viewModel.filteredCategories.enumerated()), id: \.element.id) { index, item in
-                        categoryItemView(item: item, index: index)
+            VStack {
+                VStack {
+                    ScrollViewReader { proxy in
+                        List {
+                            ForEach(Array(viewModel.filteredCategories.enumerated()), id: \.element.id) { index, item in
+                                categoryItemView(item: item, index: index)
+                            }
+                        }
+                        .frame(height: viewModel.filteredCategories.isEmpty ? 0 : 200)
+                        .listStyle(PlainListStyle())
+                        .cornerRadius(10)
+                        .focused($viewFocus, equals: .category)
+                        .onKeyPress(keys: [.upArrow, .downArrow, .return]) { keyPress in
+                            viewModel.handleKeyPress(keyPress)
+                        }
+                        .onChange(of: viewModel.scrollTarget) {
+                            viewModel.scrollToTarget(proxy: proxy, currentViewState: .category)
+                        }
                     }
+                    .cardStyle()
                 }
-                .frame(height: viewModel.filteredCategories.isEmpty ? 0 : 200)
-                .listStyle(.plain)
-                .shadow(color: Color.gray, radius: 5, x: 5, y: 15)
-                .focused($viewFocus, equals: .category)
-                .onKeyPress(keys: [.upArrow, .downArrow, .return]) { keyPress in
-                    viewModel.handleKeyPress(keyPress)
-                }
-                .onChange(of: viewModel.scrollTarget) {
-                    viewModel.scrollToTarget(proxy: proxy, currentViewState: .category)
-                }
+                .padding(.top, 80)
+                .frame(width: 224)
+                .zIndex(2)
+                
+                Spacer()
             }
             
-            Color.black.opacity(0.01)
-                .onTapGesture { viewModel.onCategoryListBackgroundTap() }
+
         }
-        .zIndex(2)
     }
     
     private func categoryItemView(item: Category, index: Int, currentState: TodoViewState = .category) -> some View {
-        return HoverableButton(isPriority: viewModel.viewState == currentState, action: {
+        HoverableButton(isPriority: viewModel.viewState == currentState, action: {
             viewModel.selectItem(item)
         }) {
             HStack {
                 Circle()
-                    .frame(width: 5, height: 5)
-                    .foregroundStyle(Color(hex: item.color))
-                Text(item.name)
+                    .fill(Color(hex: item.color))
+                    .frame(width: 12, height: 12)
+                Text(item.name.capitalized)
+                    .foregroundColor(.primary)
                 Spacer()
             }
-            .padding(8)
+            .padding(.horizontal, 4)
+            .padding(.vertical, 8)
             .contentShape(Rectangle())
         }
         .onHover { hovering in
             viewModel.onCategoryItemHover(hovering: hovering, index: index, currentState: currentState)
         }
         .id(index)
-        .background(viewModel.isItemViewHovered(index: index, currentState: currentState) ? Color.blue.opacity(0.2) : Color.clear)
-        .clipShape(.rect(cornerRadius: 4))
+        .background(viewModel.isItemViewHovered(index: index, currentState: currentState) ? Color.accentColor.opacity(0.1) : Color.clear)
+        .cornerRadius(8)
+        .animation(.easeInOut, value: viewModel.isItemViewHovered(index: index, currentState: currentState))
     }
     
     private func suggestedTodoListView() -> some View {
-        VStack {
-            Color.black.opacity(0.01)
-                .frame(height: 110)
-                .onTapGesture {
-                    viewModel.onSuggestedListBackgroundTap()
-                }
-            
-            ScrollViewReader { proxy in
-                if viewModel.isTaggedInput {
-                    List {
-                        ForEach(Array(viewModel.filteredCategories.enumerated()), id: \.element.id) { index, item in
-                            categoryItemView(item: item, index: index, currentState: .todoInput)
+        if viewModel.isJustSubmittedTodo {
+            return AnyView(EmptyView())
+        }
+        
+        return AnyView(
+            VStack {
+                Color.black.opacity(0.001)
+                    .onTapGesture {
+                        viewModel.onSuggestedListBackgroundTap()
+                    }
+                    .frame(height: 96)
+                
+                Group {
+                    ScrollViewReader { proxy in
+                        if viewModel.isTaggedInput {
+                            List {
+                                ForEach(Array(viewModel.filteredCategories.enumerated()), id: \.element.id) { index, item in
+                                    categoryItemView(item: item, index: index, currentState: .todoInput)
+                                }
+                            }
+                            .frame(height: viewModel.filteredCategories.isEmpty ? 0 : 200)
+                            .listStyle(PlainListStyle())
+                            .cornerRadius(10)
+                            .focused($viewFocus, equals: .todoInput)
+                            .onKeyPress(keys: [.upArrow, .downArrow, .return]) { keyPress in
+                                viewModel.handleKeyPress(keyPress)
+                                return .handled
+                            }
+                            .onChange(of: viewModel.scrollTarget) { _ in
+                                viewModel.scrollToTarget(proxy: proxy, currentViewState: .todoInput)
+                            }
+                        } else {
+                            List {
+                                ForEach(Array(viewModel.filteredSuggestedTodos.enumerated()), id: \.element.id) { index, item in
+                                    suggestedTodoItemView(item: item, index: index)
+                                }
+                            }
+                            .frame(height: viewModel.filteredSuggestedTodos.isEmpty ? 0 : 200)
+                            .listStyle(PlainListStyle())
+                            .cornerRadius(10)
+                            .focused($viewFocus, equals: .todoInput)
+                            .onKeyPress(keys: [.upArrow, .downArrow, .return]) { keyPress in
+                                viewModel.handleKeyPress(keyPress)
+                                return .handled
+                            }
+                            .onChange(of: viewModel.scrollTarget) { _ in
+                                viewModel.scrollToTarget(proxy: proxy, currentViewState: .todoInput)
+                            }
                         }
                     }
-                    .frame(height: viewModel.filteredCategories.isEmpty ? 0 : 200)
-                    .listStyle(.plain)
-                    .shadow(color: Color.gray, radius: 5, x: 5, y: 15)
-                    .focused($viewFocus, equals: .todoInput)
-                    .onKeyPress(keys: [.upArrow, .downArrow, .return]) { keyPress in
-                        viewModel.handleKeyPress(keyPress)
-                    }
-                    .onChange(of: viewModel.scrollTarget) {
-                        viewModel.scrollToTarget(proxy: proxy, currentViewState: .todoInput)
-                    }
-                } else {
-                    List {
-                        ForEach(Array(viewModel.filteredSuggestedTodos.enumerated()), id: \.element.id) { index, item in
-                            suggestedTodoItemView(item: item, index: index)
-                        }
-                    }
-                    .frame(height: viewModel.filteredSuggestedTodos.isEmpty ? 0 : 200)
-                    .listStyle(.plain)
-                    .shadow(color: Color.gray, radius: 5, x: 5, y: 15)
-                    .focused($viewFocus, equals: .todoInput)
-                    .onKeyPress(keys: [.upArrow, .downArrow, .return]) { keyPress in
-                        viewModel.handleKeyPress(keyPress)
-                    }
-                    .onChange(of: viewModel.scrollTarget) {
-                        viewModel.scrollToTarget(proxy: proxy, currentViewState: .todoInput)
-                    }
+                    .cardStyle()
+                    .shadow(color: Color.black.opacity(0.5), radius: 5, x: 0, y: 2)
                 }
+                .padding(.horizontal, 36)
+                .padding(.top, 24)
                 
                 Color.black.opacity(0.001)
                     .onTapGesture {
                         viewModel.onSuggestedListBackgroundTap()
                     }
+                    .frame(maxHeight: .infinity)
             }
-        }
-        .zIndex(2)
+            .zIndex(2)
+        )
     }
     
     private func suggestedTodoItemView(item: Todo, index: Int) -> some View {
-        
-        return HoverableButton(isPriority: viewModel.viewState == .todoInput, action: {
+        HoverableButton(isPriority: viewModel.viewState == .todoInput, action: {
             viewModel.selectItem(item)
         }) {
             HStack {
                 Text(item.name)
+                    .foregroundColor(.primary)
                 Spacer()
-                Text(item.category.name)
+                Text(item.category.name.capitalized)
                     .font(.caption)
                     .foregroundColor(Color(hex: item.category.color))
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Color(hex: item.category.color).opacity(0.2))
+                    .cornerRadius(8)
             }
-            .padding(8)
+            .padding(.vertical, 8)
+            .padding(.horizontal, 4)
             .contentShape(Rectangle())
         }
         .onHover { hovering in
             viewModel.onSuggestedTodoItemHover(hovering: hovering, index: index)
         }
         .id(index)
-        .background(viewModel.isItemViewHovered(index: index, currentState: .todoInput) ? Color.blue.opacity(0.2) : Color.clear)
-        .clipShape(.rect(cornerRadius: 4))
-
+        .background(viewModel.isItemViewHovered(index: index, currentState: .todoInput) ? Color.accentColor.opacity(0.1) : Color.clear)
+        .cornerRadius(8)
+        .animation(.easeInOut, value: viewModel.isItemViewHovered(index: index, currentState: .todoInput))
     }
 }
 
