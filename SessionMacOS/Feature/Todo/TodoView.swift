@@ -164,7 +164,7 @@ struct TodoView: View {
             .contentShape(Rectangle())
         }
         .onHover { hovering in
-            viewModel.onCategoryItemHover(hovering: hovering, index: index)
+            viewModel.onCategoryItemHover(hovering: hovering, index: index, currentState: currentState)
         }
         .id(index)
         .background(viewModel.isItemViewHovered(index: index, currentState: currentState) ? Color.blue.opacity(0.2) : Color.clear)

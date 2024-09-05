@@ -111,8 +111,8 @@ final class TodoViewModel: ObservableObject {
         return (isSelected && viewState == .category) || (isSelected && isTaggedInput)
     }
     
-    func onCategoryItemHover(hovering: Bool, index: Int) {
-        if viewState == .category && CursorManager.shared.isCursorShown {
+    func onCategoryItemHover(hovering: Bool, index: Int, currentState: TodoViewState ) {
+        if viewState == currentState && CursorManager.shared.isCursorShown {
             selectedItemIndex = hovering ? index : -1
         }
     }
@@ -300,7 +300,7 @@ final class TodoViewModel: ObservableObject {
     }
     
     private func removeTagFromFocusText() {
-        if let atIndex = todoInputText.firstIndex(of: "@") {
+        if let atIndex = todoInputText.lastIndex(of: "@") {
             todoInputText = String(todoInputText[..<atIndex]).trimmingCharacters(in: .whitespaces)
         }
     }
