@@ -25,6 +25,10 @@ enum TodoViewFocusState {
 @MainActor
 final class TodoViewModel: ObservableObject {
     
+    private enum MoveDirection {
+        case up, down
+    }
+    
     @Published var todoInputText = ""
     @Published var viewState: TodoViewState = .todoList
     @Published var scrollTarget: Int?
@@ -38,16 +42,15 @@ final class TodoViewModel: ObservableObject {
     
     @Published var todoAlertMessage = ""
     
-    var selectedCategoryName: String {
-        selectedCategory?.name ?? "No Category Found"
-    }
-    
-    // View Bindings
     var isShowTodoAlertBinding: Binding<Bool> {
         Binding(
             get: { self.isShowTodoAlert },
             set: { newValue in self.isShowTodoAlert = newValue }
         )
+    }
+    
+    var selectedCategoryName: String {
+        selectedCategory?.name ?? "No Category Found"
     }
     
     private var isShowTodoAlert = false
@@ -56,15 +59,24 @@ final class TodoViewModel: ObservableObject {
         getRelevantItems()
     }
     
-    private enum MoveDirection {
-        case up, down
-    }
-    
+    // MARK: - INIT
     init() {
         loadData()
     }
     
-    func resetStates() {
+    // MARK: - PUBLIC METHODS
+    
+    func onAppear(viewFocus: Binding<TodoViewState?>) {
+        viewFocus.wrappedValue = viewState
+    }
+    
+    func onFocusChange(newValue: TodoViewState?) {
+        viewState = newValue ?? .todoList
+        selectedItemIndex = -1
+    }
+    
+    func onViewStateChange(newValue: TodoViewState, viewFocus: Binding<TodoViewState?>) {
+        viewFocus.wrappedValue = newValue
         selectedItemIndex = -1
     }
     
@@ -84,20 +96,6 @@ final class TodoViewModel: ObservableObject {
             return isHovered
         }
 
-    }
-    
-    func onAppear(viewFocus: Binding<TodoViewState?>) {
-        viewFocus.wrappedValue = viewState
-    }
-    
-    func onFocusChange(newValue: TodoViewState?) {
-        viewState = newValue ?? .todoList
-        selectedItemIndex = -1
-    }
-    
-    func onViewStateChange(newValue: TodoViewState, viewFocus: Binding<TodoViewState?>) {
-        viewFocus.wrappedValue = newValue
-        selectedItemIndex = -1
     }
     
     func onCategoryHeaderTap() {
@@ -134,54 +132,6 @@ final class TodoViewModel: ObservableObject {
         }
     }
     
-    func scrollToTarget(proxy: ScrollViewProxy, currentViewState: TodoViewState) {
-        if let target = scrollTarget, currentViewState == viewState {
-            withAnimation {
-                proxy.scrollTo(target, anchor: .center)
-            }
-        }
-    }
-    
-    func handleTextFieldChange(_ newValue: String) {
-        if newValue.hasPrefix("@") {
-            let afterAt = String(newValue.dropFirst())
-            if afterAt.contains(" ") {
-                isTaggedInput = false
-                selectedItemIndex = -1
-                filterSuggestionTodos(newValue)
-            } else {
-                isTaggedInput = true
-                selectedItemIndex = 0
-                filterCategories(afterAt)
-            }
-        } else if newValue.last == "@" {
-            isTaggedInput = true
-            selectedItemIndex = 0
-            filteredCategories = categories
-        } else if newValue.contains("@") {
-            let components = newValue.split(separator: "@", maxSplits: 1)
-            if components.count == 2 {
-                let afterAt = String(components[1])
-                if afterAt.contains(" ") {
-                    isTaggedInput = false
-                    selectedItemIndex = -1
-                    filterSuggestionTodos(newValue)
-                } else {
-                    isTaggedInput = true
-                    selectedItemIndex += 1
-                    filterCategories(afterAt)
-                }
-            } else {
-                isTaggedInput = false
-                selectedItemIndex = -1
-                filterSuggestionTodos(newValue)
-            }
-        } else {
-            isTaggedInput = false
-            filterSuggestionTodos(newValue)
-        }
-    }
-    
     func handleKeyPress(_ keyPress: KeyPress, isTextfieldState: Bool? = nil) -> KeyPress.Result {
         switch keyPress.key {
         case .upArrow:
@@ -197,76 +147,43 @@ final class TodoViewModel: ObservableObject {
         }
     }
     
+    func scrollToTarget(proxy: ScrollViewProxy, currentViewState: TodoViewState) {
+        if let target = scrollTarget, currentViewState == viewState {
+            withAnimation {
+                proxy.scrollTo(target, anchor: .center)
+            }
+        }
+    }
+    
+    func handleTextFieldChange(_ newValue: String) {
+        let atPattern = #"@([^\s@]*)$"#
+        
+        if let match = newValue.range(of: atPattern, options: .regularExpression) {
+            let afterAt = String(newValue[match].dropFirst())
+            isTaggedInput = true
+            selectedItemIndex = 0
+            filterCategories(afterAt)
+        } else if newValue.last == "@" {
+            isTaggedInput = true
+            selectedItemIndex = 0
+            filteredCategories = categories
+        } else if newValue.contains("@") {
+            isTaggedInput = false
+            selectedItemIndex = -1
+            filterSuggestionTodos(newValue)
+        } else {
+            isTaggedInput = false
+            selectedItemIndex = -1
+            filterSuggestionTodos(newValue)
+        }
+    }
+    
     func resetTodoAlert() {
         Task { @MainActor in
             todoAlertMessage = ""
             isShowTodoAlert = false
         }
 
-    }
-    
-    private func deferredMoveSelection(direction: MoveDirection) {
-        Task { @MainActor in
-            switch direction {
-            case .up:
-                selectedItemIndex = max(selectedItemIndex - 1, 0)
-            case .down:
-                selectedItemIndex = min(selectedItemIndex + 1, currentItems.count - 1)
-            }
-            
-            CursorManager.shared.hideCursor()
-            scrollTarget = selectedItemIndex
-        }
-    }
-    
-    private func deferredHandleReturnKey() -> KeyPress.Result {
-        Task { @MainActor in
-            
-            if viewState == .todoInput && todoInputText != "" {
-                self.submitTodoTextfield()
-            }
-            
-            if selectedItemIndex >= 0 && selectedItemIndex < currentItems.count {
-                selectItem(currentItems[selectedItemIndex])
-            }
-            
-            selectedItemIndex = -1
-            scrollTarget = 0
-        }
-        return .handled
-    }
-
-
-    private func loadData() {
-        categories = DataManager.shared.loadCategories()
-        todos = DataManager.shared.loadTodos()
-        selectedCategory = categories.first
-        filteredCategories = categories
-        filteredSuggestedTodos = Array(todos.prefix(5))
-    }
-    
-    
-    private func filterCategories(_ filter: String) {
-        filteredCategories = categories.filter { category in
-            category.name.lowercased().starts(with: filter.lowercased())
-        }
-    }
-
-    private func filterSuggestionTodos(_ filter: String) {
-        filteredSuggestedTodos = Array(todos.prefix(5)).filter { todo in
-            todo.name.lowercased().starts(with: filter.lowercased())
-        }
-    }
-    
-    private func getRelevantItems() -> [Any] {
-        if isTaggedInput {
-            return filteredCategories
-        }
-        switch viewState {
-        case .todoList: return todos
-        case .category: return filteredCategories
-        case .todoInput: return filteredSuggestedTodos
-        }
     }
     
     func submitTodoTextfield(action: (() -> Void)? = nil) {
@@ -312,6 +229,70 @@ final class TodoViewModel: ObservableObject {
             
         }
         action?()
+    }
+    
+    // MARK: - PRIVATE METHODS
+    
+    private func loadData() {
+        categories = DataManager.shared.loadCategories()
+        todos = DataManager.shared.loadTodos()
+        selectedCategory = categories.first
+        filteredCategories = categories
+        filteredSuggestedTodos = Array(todos.prefix(5))
+    }
+    
+    private func deferredMoveSelection(direction: MoveDirection) {
+        Task { @MainActor in
+            switch direction {
+            case .up:
+                selectedItemIndex = max(selectedItemIndex - 1, 0)
+            case .down:
+                selectedItemIndex = min(selectedItemIndex + 1, currentItems.count - 1)
+            }
+            
+            CursorManager.shared.hideCursor()
+            scrollTarget = selectedItemIndex
+        }
+    }
+    
+    private func deferredHandleReturnKey() -> KeyPress.Result {
+        Task { @MainActor in
+            
+            if viewState == .todoInput && todoInputText != "" {
+                self.submitTodoTextfield()
+            }
+            
+            if selectedItemIndex >= 0 && selectedItemIndex < currentItems.count {
+                selectItem(currentItems[selectedItemIndex])
+            }
+            
+            selectedItemIndex = -1
+            scrollTarget = 0
+        }
+        return .handled
+    }
+    
+    private func filterCategories(_ filter: String) {
+        filteredCategories = categories.filter { category in
+            category.name.lowercased().starts(with: filter.lowercased())
+        }
+    }
+
+    private func filterSuggestionTodos(_ filter: String) {
+        filteredSuggestedTodos = Array(todos.prefix(5)).filter { todo in
+            todo.name.lowercased().starts(with: filter.lowercased())
+        }
+    }
+    
+    private func getRelevantItems() -> [Any] {
+        if isTaggedInput {
+            return filteredCategories
+        }
+        switch viewState {
+        case .todoList: return todos
+        case .category: return filteredCategories
+        case .todoInput: return filteredSuggestedTodos
+        }
     }
     
     private func removeTagFromFocusText() {
