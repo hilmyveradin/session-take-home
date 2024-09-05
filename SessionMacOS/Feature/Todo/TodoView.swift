@@ -142,7 +142,7 @@ struct TodoView: View {
                             .fill( viewModel.isItemViewHovered(index: index, currentState: .todoList) ? Color.white : Color(hex: item.category.color) )
                             .frame(width: 6, height: 6)
 
-                        Text(item.category.name)
+                        Text(item.category.name.capitalized)
                             .font(.smallInter)
                             .foregroundStyle(viewModel.isItemViewHovered(index: index, currentState: .todoList) ? Color.white : Color.textSecondary)
                     }
