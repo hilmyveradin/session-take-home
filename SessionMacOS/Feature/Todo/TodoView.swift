@@ -102,7 +102,7 @@ struct TodoView: View {
             }
             .scrollIndicators(.never)
             .scrollContentBackground(.hidden)
-            .listStyle(PlainListStyle())
+            .listStyle(.plain)
             .padding(EdgeInsets(top: 0, leading: -8, bottom: 0, trailing: -8))
             .focused($viewFocus, equals: .todoList)
             .onKeyPress(keys: [.upArrow, .downArrow, .return]) { keyPress in
@@ -171,33 +171,36 @@ struct TodoView: View {
                 .onTapGesture {
                     viewModel.onCategoryListBackgroundTap()
                 }
-                VStack {
-                    ScrollViewReader { proxy in
-                        List {
-                            ForEach(Array(viewModel.filteredCategories.enumerated()), id: \.element.id) { index, item in
-                                categoryItemView(item: item, index: index)
-
-                            }
-                        }
-                        .scrollIndicators(.never)
-                        .frame(height: viewModel.filteredCategories.isEmpty ? 0 : 200)
-                        .listStyle(.plain)
-                        .cornerRadius(4)
-                        .shadow(color: Color.black.opacity(0.2), radius: 20, x: 0, y: 30)
-                        .focused($viewFocus, equals: .category)
-                        .onKeyPress(keys: [.upArrow, .downArrow, .return]) { keyPress in
-                            viewModel.handleKeyPress(keyPress)
-                        }
-                        .onChange(of: viewModel.scrollTarget) {
-                            viewModel.scrollToTarget(proxy: proxy, currentViewState: .category)
+            
+            VStack {
+                ScrollViewReader { proxy in
+                    List {
+                        ForEach(Array(viewModel.filteredCategories.enumerated()), id: \.element.id) { index, item in
+                            categoryItemView(item: item, index: index)
+                                .listRowInsets(.init()) // remove insets
                         }
                     }
-                    
-                    Spacer()
+                    .scrollIndicators(.never)
+                    .scrollContentBackground(.hidden)
+                    .background(.background)
+                    .listStyle(.plain)
+                    .padding(EdgeInsets(top: 0, leading: -8, bottom: 0, trailing: -8))
+                    .focused($viewFocus, equals: .category)
+                    .onKeyPress(keys: [.upArrow, .downArrow, .return]) { keyPress in
+                        viewModel.handleKeyPress(keyPress)
+                    }
+                    .onChange(of: viewModel.scrollTarget) {
+                        viewModel.scrollToTarget(proxy: proxy, currentViewState: .category)
+                    }
                 }
-                .padding(.top, 60)
-                .zIndex(2)
+                .frame(height: viewModel.filteredCategories.isEmpty ? 0 : 180)
+                .cornerRadius(4)
+                .shadow(color: Color.black.opacity(0.2), radius: 20, x: 0, y: 30)
+                Spacer()
             }
+            .padding(.top, 54)
+            .zIndex(2)
+        }
         .padding(.horizontal, 16)
     }
     
@@ -217,14 +220,12 @@ struct TodoView: View {
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 8)
-            .cornerRadius(20)
         }
         .onHover { hovering in
             viewModel.onCategoryItemHover(hovering: hovering, index: index, currentState: currentState)
         }
         .id(index)
         .background(viewModel.isItemViewHovered(index: index, currentState: currentState) ? Color.tintPrimary : Color.clear)
-        .cornerRadius(4)
         .animation(.easeInOut, value: viewModel.isItemViewHovered(index: index, currentState: currentState))
         .listRowSeparator(.hidden)
     }
@@ -251,7 +252,8 @@ struct TodoView: View {
                                 }
                             }
                             .frame(height: viewModel.filteredCategories.isEmpty ? 0 : 200)
-                            .listStyle(PlainListStyle())
+                            .listStyle(.plain)
+                            .padding(EdgeInsets(top: 0, leading: -8, bottom: 0, trailing: -8))
                             .cornerRadius(10)
                             .focused($viewFocus, equals: .todoInput)
                             .onKeyPress(keys: [.upArrow, .downArrow, .return]) { keyPress in
@@ -267,9 +269,11 @@ struct TodoView: View {
                                     suggestedTodoItemView(item: item, index: index)
                                 }
                             }
+                            .scrollIndicators(.never)
                             .frame(height: viewModel.filteredSuggestedTodos.isEmpty ? 0 : 200)
-                            .listStyle(PlainListStyle())
-                            .cornerRadius(10)
+                            .listStyle(.plain)
+                            .cornerRadius(4)
+                            .shadow(color: Color.black.opacity(0.2), radius: 20, x: 0, y: 30)
                             .focused($viewFocus, equals: .todoInput)
                             .onKeyPress(keys: [.upArrow, .downArrow, .return]) { keyPress in
                                 viewModel.handleKeyPress(keyPress)
@@ -280,8 +284,6 @@ struct TodoView: View {
                             }
                         }
                     }
-                    .cardStyle()
-                    .shadow(color: Color.black.opacity(0.5), radius: 5, x: 0, y: 2)
                 }
                 .padding(.horizontal, 36)
                 .padding(.top, 24)
@@ -300,29 +302,26 @@ struct TodoView: View {
         HoverableButton(isPriority: viewModel.viewState == .todoInput, action: {
             viewModel.selectItem(item)
         }) {
+            
             HStack {
-                Text(item.name)
-                    .foregroundColor(.primary)
+                
+            
+            Text(item.name.capitalized)
+                .foregroundStyle(viewModel.isItemViewHovered(index: index, currentState: .todoInput) ? Color.white : Color.textPrimary )
+
+                
                 Spacer()
-                Text(item.category.name.capitalized)
-                    .font(.caption)
-                    .foregroundColor(Color(hex: item.category.color))
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(Color(hex: item.category.color).opacity(0.2))
-                    .cornerRadius(8)
             }
+            .padding(.horizontal, 12)
             .padding(.vertical, 8)
-            .padding(.horizontal, 4)
-            .contentShape(Rectangle())
         }
         .onHover { hovering in
             viewModel.onSuggestedTodoItemHover(hovering: hovering, index: index)
         }
         .id(index)
-        .background(viewModel.isItemViewHovered(index: index, currentState: .todoInput) ? Color.accentColor.opacity(0.1) : Color.clear)
-        .cornerRadius(8)
+        .background(viewModel.isItemViewHovered(index: index, currentState: .todoInput) ? Color.tintPrimary : Color.clear)
         .animation(.easeInOut, value: viewModel.isItemViewHovered(index: index, currentState: .todoInput))
+        .listRowSeparator(.hidden)
     }
 }
 
