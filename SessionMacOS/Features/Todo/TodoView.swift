@@ -190,7 +190,7 @@ struct TodoView: View {
                         viewModel.scrollToTarget(proxy: proxy, currentViewState: .category)
                     }
                 }
-                .frame(height: viewModel.filteredCategories.isEmpty ? 0 : 180)
+                .frame(height: viewModel.filteredCategories.isEmpty ? 0 : 280)
                 .cornerRadius(4)
                 .shadow(color: Color.black.opacity(0.2), radius: 20, x: 0, y: 30)
                 Spacer()
@@ -218,7 +218,7 @@ struct TodoView: View {
                 Spacer()
             }
             .padding(.horizontal, 12)
-            .padding(.vertical, 8)
+            .padding(.vertical, 12)
             .contentShape(Rectangle())
         }
         .onHover { hovering in
@@ -228,7 +228,7 @@ struct TodoView: View {
         .background(viewModel.isItemViewHovered(index: index, currentState: currentState) ? Color.tintPrimary : Color.clear)
         .animation(.easeInOut, value: viewModel.isItemViewHovered(index: index, currentState: currentState))
         .listRowSeparator(.hidden)
-        .listRowInsets(EdgeInsets(top: 2, leading: 0, bottom: 2, trailing: 0))
+        .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 0, trailing: 0))
     }
 
     private func suggestedTodoListView() -> some View {
@@ -252,7 +252,7 @@ struct TodoView: View {
                                     categoryItemView(item: item, index: index, currentState: .todoInput)
                                 }
                             }
-                            .frame(height: viewModel.filteredCategories.isEmpty ? 0 : 150)
+                            .frame(height: viewModel.filteredCategories.isEmpty ? 0 : 280)
                             .scrollIndicators(.never)
                             .scrollContentBackground(.hidden)
                             .background(.background)
@@ -272,7 +272,7 @@ struct TodoView: View {
                                     suggestedTodoItemView(item: item, index: index)
                                 }
                             }
-                            .frame(height: viewModel.filteredSuggestedTodos.isEmpty ? 0 : 150)
+                            .frame(height: viewModel.filteredSuggestedTodos.isEmpty ? 0 : 280)
                             .scrollIndicators(.never)
                             .scrollContentBackground(.hidden)
                             .background(.background)
@@ -307,10 +307,23 @@ struct TodoView: View {
             viewModel.selectItem(item)
         }) {
             HStack {
-                Text(item.name.capitalized)
-                    .font(.inter)
-                    .fontWeight(.medium)
-                    .foregroundStyle(viewModel.isItemViewHovered(index: index, currentState: .todoInput) ? Color.white : Color.textPrimary)
+                VStack(alignment: .leading, spacing: 0) {
+                    Text(item.name)
+                        .font(.inter)
+                        .fontWeight(.medium)
+                        .foregroundStyle(viewModel.isItemViewHovered(index: index, currentState: .todoInput) ? Color.white : Color.textPrimary)
+
+                    HStack(spacing: 4) {
+                        Circle()
+                            .fill(viewModel.isItemViewHovered(index: index, currentState: .todoInput) ? Color.white : Color(hex: item.category.color))
+                            .frame(width: 6, height: 6)
+
+                        Text(item.category.name.capitalized)
+                            .font(.smallInter)
+                            .fontWeight(.medium)
+                            .foregroundStyle(viewModel.isItemViewHovered(index: index, currentState: .todoInput) ? Color.white : Color.textSecondary)
+                    }
+                }
 
                 Spacer()
             }
@@ -325,7 +338,7 @@ struct TodoView: View {
         .background(viewModel.isItemViewHovered(index: index, currentState: .todoInput) ? Color.tintPrimary : Color.clear)
         .animation(.easeInOut, value: viewModel.isItemViewHovered(index: index, currentState: .todoInput))
         .listRowSeparator(.hidden)
-        .listRowInsets(EdgeInsets(top: 2, leading: 0, bottom: 2, trailing: 0))
+        .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 0, trailing: 0))
         .cornerRadius(4)
     }
 }
