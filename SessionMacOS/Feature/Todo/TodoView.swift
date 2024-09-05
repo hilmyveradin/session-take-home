@@ -41,9 +41,6 @@ struct TodoView: View {
         .onChange(of: viewModel.viewState) {
             viewModel.onViewStateChange(newValue: viewModel.viewState, viewFocus: viewFocusBinding)
         }
-        .alert(isPresented: viewModel.isShowTodoAlertBinding) {
-            Alert(title: Text(viewModel.todoAlertMessage))
-        }
     }
     
     private var categoryHeader: some View {
@@ -96,7 +93,13 @@ struct TodoView: View {
             viewModel.selectItem(item)
         }) {
             HStack {
-                Image(systemName: "square")
+                if viewModel.selectedTodoUidSet.contains(item.id) {
+                    Image(systemName: "checkmark.square.fill")
+                        .foregroundColor(.blue)
+                } else {
+                    Image(systemName: "square")
+                        .foregroundColor(.gray)
+                }
                 Text(item.name)
                 Spacer()
                 Text(item.category.name)

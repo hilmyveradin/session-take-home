@@ -40,20 +40,11 @@ final class TodoViewModel: ObservableObject {
     @Published var todos: [Todo] = []
     @Published var selectedItemIndex = -1
     
-    @Published var todoAlertMessage = ""
-    
-    var isShowTodoAlertBinding: Binding<Bool> {
-        Binding(
-            get: { self.isShowTodoAlert },
-            set: { newValue in self.isShowTodoAlert = newValue }
-        )
-    }
+    @Published var selectedTodoUidSet: Set<UUID> = []
     
     var selectedCategoryName: String {
         selectedCategory?.name ?? "No Category Found"
     }
-    
-    private var isShowTodoAlert = false
     
     private var currentItems: [Any] {
         getRelevantItems()
@@ -178,14 +169,6 @@ final class TodoViewModel: ObservableObject {
         }
     }
     
-    func resetTodoAlert() {
-        Task { @MainActor in
-            todoAlertMessage = ""
-            isShowTodoAlert = false
-        }
-
-    }
-    
     func submitTodoTextfield(action: (() -> Void)? = nil) {
         guard let selectedCategory else { return }
         let todo = Todo(name: todoInputText, category: selectedCategory)
@@ -223,10 +206,12 @@ final class TodoViewModel: ObservableObject {
             }
         case .todoList:
             if let newTodo = item as? Todo {
-                isShowTodoAlert = true
-                todoAlertMessage = newTodo.name
+                if selectedTodoUidSet.contains(newTodo.id) {
+                    selectedTodoUidSet.remove(newTodo.id)
+                } else {
+                    selectedTodoUidSet.insert(newTodo.id)
+                }
             }
-            
         }
         action?()
     }
