@@ -199,7 +199,7 @@ final class TodoViewModel: ObservableObject {
                         todos.insert(newTodo, at: 0)
                     }
                     todoInputText = newTodo.name
-                    filteredSuggestedTodos = Array(todos.prefix(5))
+                    filterSuggestionTodos("")
                     DataManager.shared.saveTodos(todos)
                     viewState = .todoList
                 }
@@ -223,7 +223,7 @@ final class TodoViewModel: ObservableObject {
         todos = DataManager.shared.loadTodos()
         selectedCategory = categories.first
         filteredCategories = categories
-        filteredSuggestedTodos = Array(todos.prefix(5))
+        filterSuggestionTodos("")
     }
     
     private func deferredMoveSelection(direction: MoveDirection) {
@@ -264,9 +264,19 @@ final class TodoViewModel: ObservableObject {
     }
 
     private func filterSuggestionTodos(_ filter: String) {
-        filteredSuggestedTodos = Array(todos.prefix(5)).filter { todo in
-            todo.name.lowercased().starts(with: filter.lowercased())
+        let lowercasedFilter = filter.lowercased()
+        
+        if lowercasedFilter == "" {
+            filteredSuggestedTodos = Array(todos.prefix(5))
+            return
         }
+        
+        filteredSuggestedTodos = Array(todos
+            .filter { todo in
+                todo.name.lowercased().starts(with: lowercasedFilter)
+            }
+            .sorted { $0.name.count < $1.name.count } // Sort by name length, shortest first
+            .prefix(5)) // Take top 5 and convert to Array
     }
     
     private func getRelevantItems() -> [Any] {
