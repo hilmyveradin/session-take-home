@@ -205,9 +205,10 @@ final class TodoViewModel: ObservableObject {
                     selectedCategory = newTodo.category
                     DataManager.shared.saveTodos(todos)
                     viewState = .todoList
-                    
+                    todoInputText = ""
                 }
             }
+            
         case .todoList:
             if let newTodo = item as? Todo {
                 if selectedTodoUidSet.contains(newTodo.id) {

@@ -57,9 +57,10 @@ struct TodoView: View {
                     
                 Spacer()
                 Image(systemName: "chevron.down")
-                    .font(.system(size: 8))
+                    .font(.system(size: 8, weight: .black))
+                    .symbolRenderingMode(.hierarchical)
                     .frame(width: 8, height: 4)
-                    .foregroundColor(.gray)
+                    .foregroundStyle(Color.gray)
             }
             
             .padding(.horizontal, 12)
@@ -73,8 +74,8 @@ struct TodoView: View {
     private var todoTextField: some View {
         TextField("", text: $viewModel.todoInputText, prompt: Text("What's your focus?")
             .font(.inter)
-            .foregroundColor(.textPlaceholder)
             .fontWeight(.medium))
+        .foregroundStyle(viewModel.todoInputText == "" ? Color.textPlaceholder : Color.textPrimary)
                 .padding(.horizontal, 18)
                 .padding(.vertical, 10)
                 .background(.background)
@@ -144,6 +145,7 @@ struct TodoView: View {
 
                         Text(item.category.name.capitalized)
                             .font(.smallInter)
+                            .fontWeight(.medium)
                             .foregroundStyle(viewModel.isItemViewHovered(index: index, currentState: .todoList) ? Color.white : Color.textSecondary)
                     }
                 }
@@ -214,12 +216,15 @@ struct TodoView: View {
                     .frame(width: 8, height: 8)
 
                 Text(item.name.capitalized)
+                    .font(.inter)
+                    .fontWeight(.medium)
                     .foregroundStyle(viewModel.isItemViewHovered(index: index, currentState: currentState) ? Color.white : Color.textPrimary )
                 
                 Spacer()
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 8)
+            .contentShape(Rectangle())
         }
         .onHover { hovering in
             viewModel.onCategoryItemHover(hovering: hovering, index: index, currentState: currentState)
@@ -228,7 +233,7 @@ struct TodoView: View {
         .background(viewModel.isItemViewHovered(index: index, currentState: currentState) ? Color.tintPrimary : Color.clear)
         .animation(.easeInOut, value: viewModel.isItemViewHovered(index: index, currentState: currentState))
         .listRowSeparator(.hidden)
-        .listRowInsets(EdgeInsets(top: 1, leading: 0, bottom: 1, trailing: 0))
+        .listRowInsets(EdgeInsets(top: 2, leading: 0, bottom: 2, trailing: 0))
     }
     
     private func suggestedTodoListView() -> some View {
@@ -242,7 +247,7 @@ struct TodoView: View {
                     .onTapGesture {
                         viewModel.onSuggestedListBackgroundTap()
                     }
-                    .frame(height: 96)
+                    .frame(height: 90)
                 
                 Group {
                     ScrollViewReader { proxy in
@@ -252,16 +257,18 @@ struct TodoView: View {
                                     categoryItemView(item: item, index: index, currentState: .todoInput)
                                 }
                             }
-                            .frame(height: viewModel.filteredCategories.isEmpty ? 0 : 200)
+                            .frame(height: viewModel.filteredCategories.isEmpty ? 0 : 150)
+                            .scrollIndicators(.never)
+                            .scrollContentBackground(.hidden)
+                            .background(.background)
                             .listStyle(.plain)
                             .padding(EdgeInsets(top: 0, leading: -8, bottom: 0, trailing: -8))
-                            .cornerRadius(10)
+                            .cornerRadius(4)
                             .focused($viewFocus, equals: .todoInput)
                             .onKeyPress(keys: [.upArrow, .downArrow, .return]) { keyPress in
                                 viewModel.handleKeyPress(keyPress)
-                                return .handled
                             }
-                            .onChange(of: viewModel.scrollTarget) { _ in
+                            .onChange(of: viewModel.scrollTarget) {
                                 viewModel.scrollToTarget(proxy: proxy, currentViewState: .todoInput)
                             }
                         } else {
@@ -270,24 +277,25 @@ struct TodoView: View {
                                     suggestedTodoItemView(item: item, index: index)
                                 }
                             }
+                            .frame(height: viewModel.filteredSuggestedTodos.isEmpty ? 0 : 150)
                             .scrollIndicators(.never)
-                            .frame(height: viewModel.filteredSuggestedTodos.isEmpty ? 0 : 200)
+                            .scrollContentBackground(.hidden)
+                            .background(.background)
                             .listStyle(.plain)
+                            .padding(EdgeInsets(top: 0, leading: -8, bottom: 0, trailing: -8))
                             .cornerRadius(4)
-                            .shadow(color: Color.black.opacity(0.2), radius: 20, x: 0, y: 30)
                             .focused($viewFocus, equals: .todoInput)
                             .onKeyPress(keys: [.upArrow, .downArrow, .return]) { keyPress in
                                 viewModel.handleKeyPress(keyPress)
-                                return .handled
                             }
-                            .onChange(of: viewModel.scrollTarget) { _ in
+                            .onChange(of: viewModel.scrollTarget) {
                                 viewModel.scrollToTarget(proxy: proxy, currentViewState: .todoInput)
                             }
                         }
                     }
                 }
-                .padding(.horizontal, 36)
-                .padding(.top, 24)
+                .padding(.horizontal, 16)
+                .shadow(color: Color.black.opacity(0.2), radius: 20, x: 0, y: 30)
                 
                 Color.black.opacity(0.001)
                     .onTapGesture {
@@ -308,6 +316,8 @@ struct TodoView: View {
                 
             
             Text(item.name.capitalized)
+                    .font(.inter)
+                    .fontWeight(.medium)
                 .foregroundStyle(viewModel.isItemViewHovered(index: index, currentState: .todoInput) ? Color.white : Color.textPrimary )
 
                 
@@ -315,6 +325,7 @@ struct TodoView: View {
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 8)
+            .contentShape(Rectangle())
         }
         .onHover { hovering in
             viewModel.onSuggestedTodoItemHover(hovering: hovering, index: index)
@@ -323,6 +334,8 @@ struct TodoView: View {
         .background(viewModel.isItemViewHovered(index: index, currentState: .todoInput) ? Color.tintPrimary : Color.clear)
         .animation(.easeInOut, value: viewModel.isItemViewHovered(index: index, currentState: .todoInput))
         .listRowSeparator(.hidden)
+        .listRowInsets(EdgeInsets(top: 2, leading: 0, bottom: 2, trailing: 0))
+        .cornerRadius(4)
     }
 }
 
