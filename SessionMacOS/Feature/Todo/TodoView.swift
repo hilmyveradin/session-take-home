@@ -20,7 +20,7 @@ struct TodoView: View {
     
     var body: some View {
         ZStack {
-            VStack(spacing: 16) {
+            VStack(spacing: 6) {
                 categoryHeader
                 todoTextField
                 todoList
@@ -71,12 +71,19 @@ struct TodoView: View {
     }
     
     private var todoTextField: some View {
-        HStack {
-            TextField("What's your focus?", text: $viewModel.todoInputText)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 8)
-                .font(.system(size: 16, weight: .regular))
+        TextField("", text: $viewModel.todoInputText, prompt: Text("What's your focus?")
+            .font(.inter)
+            .foregroundColor(.textPlaceholder)
+            .fontWeight(.medium))
+                .padding(.horizontal, 18)
+                .padding(.vertical, 10)
+                .background(.background)
                 .textFieldStyle(PlainTextFieldStyle())
+                .cornerRadius(4)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 4)
+                        .stroke(viewModel.viewState == .todoInput ? Color.tintPrimary : Color.clear, lineWidth: 2)
+                )
                 .focused($viewFocus, equals: .todoInput)
                 .onKeyPress(keys: [.upArrow, .downArrow, .return]) { keyPress in
                     viewModel.handleKeyPress(keyPress)
@@ -84,20 +91,7 @@ struct TodoView: View {
                 .onChange(of: viewModel.todoInputText) {
                     viewModel.handleTextFieldChange(viewModel.todoInputText)
                 }
-            
-            Image(systemName: "magnifyingglass")
-                .foregroundColor(.gray)
-                .padding(.horizontal, 12)
         }
-        .background(.background)
-        .accentColor(.gray)
-        .overlay(
-            RoundedRectangle(cornerRadius: 20)
-                .stroke(Color.gray.opacity(0.3), lineWidth: 1)
-        )
-        .cornerRadius(20)
-        .padding(.horizontal, 36)
-    }
     
     private var todoList: some View {
         ScrollViewReader { proxy in

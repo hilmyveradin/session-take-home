@@ -12,6 +12,7 @@ extension Color {
     static let textPrimary = Color(hex: "606060")
     static let textSecondary = Color(hex: "8A8A8A")
     static let tintPrimary = Color(hex: "3073F5")
+    static let textPlaceholder = Color(hex: "#AAAAAA")
     
     init(hex: String) {
         let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
