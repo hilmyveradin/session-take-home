@@ -100,8 +100,10 @@ struct TodoView: View {
                     todoItemView(item: item, index: index)
                 }
             }
+            .scrollIndicators(.never)
+            .scrollContentBackground(.hidden)
             .listStyle(PlainListStyle())
-            .cornerRadius(10)
+            .padding(EdgeInsets(top: 0, leading: -8, bottom: 0, trailing: -8))
             .focused($viewFocus, equals: .todoList)
             .onKeyPress(keys: [.upArrow, .downArrow, .return]) { keyPress in
                 viewModel.handleKeyPress(keyPress)
@@ -110,38 +112,57 @@ struct TodoView: View {
                 viewModel.scrollToTarget(proxy: proxy, currentViewState: .todoList)
             }
         }
-        .cardStyle()
+        .padding(.top, 28)
     }
     
     private func todoItemView(item: Todo, index: Int) -> some View {
+        Group {
         HoverableButton(isPriority: viewModel.viewState == .todoList, action: {
             viewModel.selectItem(item)
         }) {
             HStack {
-                Image(systemName: viewModel.selectedTodoUidSet.contains(item.id) ? "checkmark.circle.fill" : "circle")
-                    .foregroundColor(viewModel.selectedTodoUidSet.contains(item.id) ? .accentColor : .gray)
-                Text(item.name)
-                    .foregroundColor(.primary)
+                Image(systemName: viewModel.selectedTodoUidSet.contains(item.id) ? "checkmark.square.fill" : "square")
+                    .foregroundStyle(
+                        viewModel.isItemViewHovered(index: index, currentState: .todoList) ? Color.white :
+                        viewModel.selectedTodoUidSet.contains(item.id) ? Color.tintPrimary :
+                        Color.textPrimary
+                    )
+                    
+
+                
+                VStack(alignment:.leading, spacing:0) {
+                    Text(item.name)
+                        .font(.inter)
+                        .fontWeight(.medium)
+                        .foregroundStyle(viewModel.isItemViewHovered(index: index, currentState: .todoList) ? Color.white : Color.textPrimary)
+
+                    
+                    HStack(spacing: 4) {
+                        Circle()
+                            .fill( viewModel.isItemViewHovered(index: index, currentState: .todoList) ? Color.white : Color(hex: item.category.color) )
+                            .frame(width: 6, height: 6)
+
+                        Text(item.category.name)
+                            .font(.smallInter)
+                            .foregroundStyle(viewModel.isItemViewHovered(index: index, currentState: .todoList) ? Color.white : Color.textSecondary)
+                    }
+                }
                 Spacer()
-                Text(item.category.name.capitalized)
-                    .font(.caption)
-                    .foregroundColor(Color(hex: item.category.color))
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(Color(hex: item.category.color).opacity(0.1))
-                    .cornerRadius(8)
             }
-            .padding(.vertical, 8)
-            .padding(.horizontal, 4)
+            .padding(.vertical, 10.5)
+            .padding(.horizontal, 8)
             .contentShape(Rectangle())
         }
         .onHover { hovering in
             viewModel.onTodoItemHover(hovering: hovering, index: index)
         }
         .id(index)
-        .background(viewModel.isItemViewHovered(index: index, currentState: .todoList) ? Color.accentColor.opacity(0.1) : Color.clear)
-        .cornerRadius(8)
+        .background(viewModel.isItemViewHovered(index: index, currentState: .todoList) ? Color.tintPrimary : Color.white)
+        .cornerRadius(4)
         .animation(.easeInOut, value: viewModel.isItemViewHovered(index: index, currentState: .todoList))
+        .listRowSeparator(.hidden)
+        }
+        .padding(.bottom, 6)
     }
     
     private func categoryListView() -> some View {
@@ -158,6 +179,7 @@ struct TodoView: View {
 
                             }
                         }
+                        .scrollIndicators(.never)
                         .frame(height: viewModel.filteredCategories.isEmpty ? 0 : 200)
                         .listStyle(.plain)
                         .cornerRadius(4)
@@ -202,7 +224,7 @@ struct TodoView: View {
         }
         .id(index)
         .background(viewModel.isItemViewHovered(index: index, currentState: currentState) ? Color.tintPrimary : Color.clear)
-        .cornerRadius(8)
+        .cornerRadius(4)
         .animation(.easeInOut, value: viewModel.isItemViewHovered(index: index, currentState: currentState))
         .listRowSeparator(.hidden)
     }

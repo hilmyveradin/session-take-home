@@ -10,4 +10,5 @@ import SwiftUI
 
 extension Font {
     static let inter = Font.custom("Inter", size: 12)
+    static let smallInter = Font.custom("Inter", size: 12)
 }
