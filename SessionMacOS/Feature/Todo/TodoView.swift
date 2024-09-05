@@ -156,18 +156,18 @@ struct TodoView: View {
                 .onTapGesture {
                     viewModel.onCategoryListBackgroundTap()
                 }
-            
-            VStack {
                 VStack {
                     ScrollViewReader { proxy in
                         List {
                             ForEach(Array(viewModel.filteredCategories.enumerated()), id: \.element.id) { index, item in
                                 categoryItemView(item: item, index: index)
+
                             }
                         }
                         .frame(height: viewModel.filteredCategories.isEmpty ? 0 : 200)
-                        .listStyle(PlainListStyle())
-                        .cornerRadius(10)
+                        .listStyle(.plain)
+                        .cornerRadius(4)
+                        .shadow(color: Color.black.opacity(0.2), radius: 20, x: 0, y: 30)
                         .focused($viewFocus, equals: .category)
                         .onKeyPress(keys: [.upArrow, .downArrow, .return]) { keyPress in
                             viewModel.handleKeyPress(keyPress)
@@ -176,17 +176,13 @@ struct TodoView: View {
                             viewModel.scrollToTarget(proxy: proxy, currentViewState: .category)
                         }
                     }
-                    .cardStyle()
+                    
+                    Spacer()
                 }
-                .padding(.top, 80)
-                .frame(width: 224)
+                .padding(.top, 60)
                 .zIndex(2)
-                
-                Spacer()
             }
-            
-
-        }
+        .padding(.horizontal, 16)
     }
     
     private func categoryItemView(item: Category, index: Int, currentState: TodoViewState = .category) -> some View {
@@ -211,9 +207,10 @@ struct TodoView: View {
             viewModel.onCategoryItemHover(hovering: hovering, index: index, currentState: currentState)
         }
         .id(index)
-        .background(viewModel.isItemViewHovered(index: index, currentState: currentState) ? Color.accentColor.opacity(0.1) : Color.clear)
+        .background(viewModel.isItemViewHovered(index: index, currentState: currentState) ? Color.tintPrimary : Color.clear)
         .cornerRadius(8)
         .animation(.easeInOut, value: viewModel.isItemViewHovered(index: index, currentState: currentState))
+        .listRowSeparator(.hidden)
     }
     
     private func suggestedTodoListView() -> some View {
