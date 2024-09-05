@@ -40,10 +40,14 @@ final class TodoViewModel: ObservableObject {
     @Published var todos: [Todo] = []
     @Published var selectedItemIndex = -1
     
-    @Published var selectedTodoUidSet: Set<UUID> = []
+    @Published var selectedTodoUidSet: Set<String> = []
     
     var selectedCategoryName: String {
         selectedCategory?.name ?? "No Category Found"
+    }
+    
+    var isRegularTextfield: Bool {
+        filteredCategories.count == 0 || !isTaggedInput
     }
     
     private var currentItems: [Any] {
@@ -169,14 +173,8 @@ final class TodoViewModel: ObservableObject {
         }
     }
     
-    func submitTodoTextfield(action: (() -> Void)? = nil) {
-        guard let selectedCategory else { return }
-        let todo = Todo(name: todoInputText, category: selectedCategory)
-        selectItem(todo)
-        action?()
-    }
-    
     func selectItem(_ item: Any, action: (() -> Void)? = nil) {
+        
         switch viewState {
         case .category:
             if let selectedCategoryItem = item as? Category {
@@ -184,7 +182,7 @@ final class TodoViewModel: ObservableObject {
                 viewState = .todoList
             }
         case .todoInput:
-            if isTaggedInput && selectedItemIndex >= 0 {
+            if isTaggedInput && selectedItemIndex >= 0 && filteredCategories.count > 0 {
                 if let selectedCategoryItem = item as? Category {
                     selectedCategory = selectedCategoryItem
                     filteredCategories = categories
@@ -242,10 +240,13 @@ final class TodoViewModel: ObservableObject {
     
     private func deferredHandleReturnKey() -> KeyPress.Result {
         Task { @MainActor in
-            
-            if viewState == .todoInput && todoInputText != "" {
+
+            // Handle enter key in textfield wile not selecting any index item
+            if (viewState == .todoInput && todoInputText != "" && selectedItemIndex <= 0 && isRegularTextfield) {
                 self.submitTodoTextfield()
+                return
             }
+            
             
             if selectedItemIndex >= 0 && selectedItemIndex < currentItems.count {
                 selectItem(currentItems[selectedItemIndex])
@@ -255,6 +256,14 @@ final class TodoViewModel: ObservableObject {
             scrollTarget = 0
         }
         return .handled
+    }
+    
+    private func submitTodoTextfield(action: (() -> Void)? = nil) {
+        guard let selectedCategory else { return }
+        let todo = Todo(name: todoInputText, category: selectedCategory)
+        // find todo from todos with same name and category
+        selectItem(todo)
+        action?()
     }
     
     private func filterCategories(_ filter: String) {

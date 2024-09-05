@@ -7,7 +7,7 @@
 import Foundation
 
 struct Todo: Codable, Identifiable {
-    let id: UUID
+    let id: String
     let name: String
     let category: Category
 
@@ -19,11 +19,11 @@ struct Todo: Codable, Identifiable {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         name = try container.decode(String.self, forKey: .name)
         category = try container.decode(Category.self, forKey: .category)
-        id = UUID()  // Generate a new UUID for each decoded todo
+        id = "\(name)|\(category.name)"
     }
 
-    init(id: UUID = UUID(), name: String, category: Category) {
-        self.id = id
+    init(name: String, category: Category) {
+        self.id = "\(name)|\(category.name)"
         self.name = name
         self.category = category
     }
